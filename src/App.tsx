@@ -3,6 +3,8 @@ import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import LandingPage from './pages/LandingPage';
 import HelpPage from './pages/HelpPage';
 import UpdatesPage from './pages/UpdatesPage';
+import { Analytics } from "@vercel/analytics/react";
+
 
 const App: React.FC = () => {
   return (
@@ -44,6 +46,7 @@ const App: React.FC = () => {
         <footer className="bg-gray-900 text-center text-sm py-4 text-white mt-auto">
           Built by <a href="https://www.jeffawe.com" className="text-teal-600">Jeffery Ozoekwe-Awagu</a>
         </footer>
+        <Analytics />
       </div>
     </Router>
   );
