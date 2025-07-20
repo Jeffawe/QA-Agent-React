@@ -6,7 +6,7 @@ const betaMessage: string = `QA Agent is currently in beta. Please note:
 
 - Some features may not work as expected (Do reach out to me if they don't)
 - The goal field is not yet configurable
-- Analysis results may vary in accuracy
+- Analysis results may vary in accuracy (I'm still working heavily on better analysis per page)
 - I appreciate your feedback as I improve the tool`;
 
 const defaultGoal: string = "Crawl the entire page";
@@ -72,7 +72,7 @@ const HelpPage: React.FC = () => {
         <div className="bg-white rounded-xl shadow-lg p-6 mb-6 border border-gray-200">
           <h3 className="text-xl font-semibold mb-3 text-gray-800">Installation</h3>
           <p className="text-gray-600 mb-3">Install globally using npm:</p>
-          <pre className="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm overflow-x-auto">npm install -g qa-agent</pre>
+          <pre className="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm overflow-x-auto">npm install -g qa-agent@beta</pre>
         </div>
 
         {/* Usage Section */}

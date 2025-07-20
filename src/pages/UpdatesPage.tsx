@@ -4,12 +4,18 @@ import BetaWarning from './BetaWarning';
 
 interface WebSocketData { message?: string; timestamp: number; page?: PageDetails; }
 
+interface InitialData {
+  pages: PageDetails[];
+  messages: string[];
+  timestamp: number;
+}
+
 const message = `QA Agent is currently in beta. Please note:
 
 - Some features may not work as expected
 - I am going to add more features like pausing and resuming the agent
 - The goal field is not yet configurable
-- Analysis results may vary in accuracy
+- Analysis results may vary in accuracy (I'm still working heavily on better analysis per page)
 - I appreciate your feedback as I improve the tool`;
 
 const UpdatesPage: React.FC = () => {
@@ -41,6 +47,11 @@ const UpdatesPage: React.FC = () => {
               alert(`🔗 Connection confirmed: ${message.data.message}`);
               break;
 
+            case 'INITIAL_DATA':
+              handleNewCrawlMapUpdate(message.data);
+              handleMultipleNewLogs(message.data);
+              break;
+
             case 'LOG':
               handleNewLog(message.data);
               break;
@@ -65,15 +76,22 @@ const UpdatesPage: React.FC = () => {
     }
   };
 
-  // const disconnect = () => {
-  //   if (socketRef.current) {
-  //     socketRef.current.close();
-  //     socketRef.current = null;
-  //   }
-  //   setConnected(false);
-  //   setLogs([]);
-  //   setUpdates([]);
-  // }
+  const disconnect = () => {
+    try {
+      if (socketRef.current) {
+        socketRef.current.close();
+        socketRef.current = null;
+      }
+      setConnected(false);
+      setLogs([]);
+      setUpdates([]);
+      fetch(`http://localhost:${port}/stop/1`);
+    }
+    catch (error) {
+      alert('Problem when stopping the Server. Please check if the port (for server and websocket) are valid.');
+      console.error('Error Stopping:', error);
+    }
+  }
 
   const handleStartServer = async () => {
     try {
@@ -90,6 +108,16 @@ const UpdatesPage: React.FC = () => {
   const handleNewLog = (data: WebSocketData) => {
     if (!data.message) return;
     setLogs(prev => [...prev.slice(-49), data.message!]);
+  };
+
+  const handleMultipleNewLogs = (data: InitialData) => {
+    if (!data.messages) return;
+    setLogs(data.messages);
+  }
+
+  const handleNewCrawlMapUpdate = (data: InitialData) => {
+    if (!data.pages) return;
+    setUpdates(data.pages);
   };
 
   const handleCrawlMapUpdate = (data: WebSocketData) => {
@@ -221,6 +249,16 @@ const UpdatesPage: React.FC = () => {
                 ) : (
                   'Connect'
                 )}
+              </button>
+              <button
+                onClick={disconnect}
+                className={`px-6 py-3 ml-2 rounded-lg font-medium transition-all duration-200 
+                  ${connected
+                    ? 'bg-red-600 hover:bg-red-700 text-white'
+                    : 'bg-gray-600 hover:bg-gray-700 text-white'
+                  }`}
+              >
+                Stop Server and Disconnect
               </button>
             </div>
           </div>
