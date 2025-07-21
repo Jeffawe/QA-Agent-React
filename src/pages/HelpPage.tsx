@@ -77,6 +77,15 @@ const HelpPage: React.FC = () => {
 
         {/* Usage Section */}
         <div className="bg-white rounded-xl shadow-lg p-6 mb-6 border border-gray-200">
+          <h3 className="text-xl font-semibold mb-3 text-gray-800">Starting the Server</h3>
+          <p className="text-gray-600 mb-3">The Server will be running on the port. Simply run the command below to start the server or go to
+            the <Link to="/updates" className="text-blue-600 hover:underline">Updates </Link> page
+            to start it</p>
+          <pre className="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm overflow-x-auto">curl http://localhost:{port}/start/1</pre>
+        </div>
+
+        {/* Usage Section */}
+        <div className="bg-white rounded-xl shadow-lg p-6 mb-6 border border-gray-200">
           <h3 className="text-xl font-semibold mb-3 text-gray-800">Basic Usage</h3>
           <p className="text-gray-600 mb-3">Run the agent with the following command structure (Use the command generator below to get started):</p>
           <pre className="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm overflow-x-auto">agent-run --goal='...' --key='...' --url='...' --port=3001 --websocket=3002</pre>
@@ -156,15 +165,6 @@ const HelpPage: React.FC = () => {
           </div>
         </div>
 
-
-        {/* Usage Section */}
-        <div className="bg-white rounded-xl shadow-lg p-6 mb-6 border border-gray-200">
-          <h3 className="text-xl font-semibold mb-3 text-gray-800">Starting the Agent</h3>
-          <p className="text-gray-600 mb-3">The Server will be running on the port. Simply run the command below to start the agent or go to 
-            the <Link to="/updates" className="text-blue-600 hover:underline">Updates </Link> page
-            to start it</p>
-          <pre className="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm overflow-x-auto">curl http://localhost:{port}/start/1</pre>
-        </div>
 
         {/* Usage Section */}
         <div className="bg-white rounded-xl shadow-lg p-6 mb-6 border border-gray-200">
