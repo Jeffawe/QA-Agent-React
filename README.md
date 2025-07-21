@@ -1,6 +1,10 @@
 # QA Agent
 
-**QA Agent** is a command-line tool that uses autonomous agents to crawl, analyse, and test the interactive components of any given website or web application. It's designed for developers and QA teams who want an automated assistant to navigate and evaluate webpages for interactivity, functionality, and structural issues. Check out the site at [QA Agent](https://qa-agent-react.vercel.app) for more detailed Info
+![npm](https://img.shields.io/npm/v/qa-agent)
+![license](https://img.shields.io/npm/l/qa-agent)
+![build](https://img.shields.io/github/workflow/status/yourusername/qa-agent/CI)
+
+A powerful CLI tool that uses autonomous agents to crawl, analyse, and test the interactive components of any given website or web application. It's designed for developers and QA teams who want an automated assistant to navigate and evaluate webpages for interactivity, functionality, and structural issues. Check out the site at [QA Agent](https://qa-agent-react.vercel.app) for more detailed Info
 
 ---
 
