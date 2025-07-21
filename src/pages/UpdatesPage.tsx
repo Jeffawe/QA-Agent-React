@@ -28,14 +28,33 @@ const UpdatesPage: React.FC = () => {
   const [showExplanation, setShowExplanation] = useState(true);
   const socketRef = useRef<WebSocket | null>(null);
 
+  //Loading
+  const [startServerloading, setstartServerLoading] = useState(false);
+  const [stopServerloading, setStopServerLoading] = useState(false);
+  const [connectedLoading, setConnectedLoading] = useState(false);
+
+
   const connect = () => {
     try {
+      setConnectedLoading(true);
       const ws = new WebSocket(`ws://localhost:${websocketport}`);
-      ws.onopen = () => setConnected(true);
-      if (ws.onerror) {
-        ws.onerror = () => setConnected(false);
+
+      ws.onopen = () => {
+        setConnected(true);
+        setConnectedLoading(false); // Move here
+      };
+
+      ws.onerror = (error) => {
+        setConnected(false);
+        setConnectedLoading(false); // Move here
         alert('WebSocket connection error. Please check if the port is valid.');
-      }
+        console.error('WebSocket error:', error);
+      };
+
+      ws.onclose = () => {
+        setConnected(false);
+        setConnectedLoading(false);
+      };
 
       ws.onmessage = (event) => {
         try {
@@ -68,9 +87,11 @@ const UpdatesPage: React.FC = () => {
           console.error('Error parsing WebSocket message:', error);
         }
       };
-      ws.onclose = () => setConnected(false);
+
       socketRef.current = ws;
     } catch (error) {
+      setConnected(false);
+      setConnectedLoading(false);
       alert('WebSocket connection error. Please check if the port is valid.');
       console.error('WebSocket connection error:', error);
     }
@@ -78,6 +99,8 @@ const UpdatesPage: React.FC = () => {
 
   const disconnect = () => {
     try {
+      setStopServerLoading(true);
+      fetch(`http://localhost:${port}/stop/1`);
       if (socketRef.current) {
         socketRef.current.close();
         socketRef.current = null;
@@ -85,22 +108,63 @@ const UpdatesPage: React.FC = () => {
       setConnected(false);
       setLogs([]);
       setUpdates([]);
-      fetch(`http://localhost:${port}/stop/1`);
     }
     catch (error) {
       alert('Problem when stopping the Server. Please check if the port (for server and websocket) are valid.');
       console.error('Error Stopping:', error);
+    } finally {
+      setStopServerLoading(false);
     }
   }
 
   const handleStartServer = async () => {
+    // Ensure loading state is always reset
+    setstartServerLoading(true);
+
+    let timeoutId;
+
     try {
-      const response = await fetch(`http://localhost:${port}/start/1`);
-      const data = await response.json(); // or response.text() depending on your API
+      // Create an AbortController for timeout handling
+      const controller = new AbortController();
+      timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
+      const response = await fetch(`http://localhost:${port}/start/1`, {
+        signal: controller.signal,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      // Clear the timeout if request succeeds
+      clearTimeout(timeoutId);
+      timeoutId = null;
+
+      if (!response.ok) {
+        throw new Error(`Server responded with status: ${response.status}`);
+      }
+
+      const data = await response.json();
       console.log('Server response:', data);
-    } catch (error) {
-      alert('Failed to start agent. Please check if the port is valid.');
-      console.error('Failed to start agent:', error);
+
+    } catch (error: unknown) {
+      // Clear timeout if it's still running
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+
+      if (typeof error === 'object' && error !== null && 'name' in error && (error as { name: string }).name === 'AbortError') {
+        alert('Request timed out. The server may be down or not responding.');
+        console.error('Request timed out after 10 seconds');
+      } else if (error instanceof TypeError && error.message.includes('fetch')) {
+        alert('Failed to connect to server. Please check if the server is running and the port is correct.');
+        console.error('Network error:', error);
+      } else {
+        alert('Failed to start agent. Please try again.');
+        console.error('Failed to start agent:', error);
+      }
+    } finally {
+      // Ensure loading is always set to false
+      setstartServerLoading(false);
     }
   };
 
@@ -184,8 +248,10 @@ const UpdatesPage: React.FC = () => {
                           onChange={(e) => setPort(e.target.value)}
                         />
                         <button
-                          onClick={handleStartServer} className="px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-md hover:bg-purple-700 transition-colors duration-200">
-                          Start Server
+                          onClick={handleStartServer}
+                          disabled={!port || startServerloading}
+                          className="px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-md hover:bg-purple-700 transition-colors duration-200">
+                          {startServerloading ? "Starting..." : "Start Server"}
                         </button>
                       </div>
                     </div>
@@ -240,6 +306,7 @@ const UpdatesPage: React.FC = () => {
                   ? 'bg-green-600 hover:bg-green-700 text-white'
                   : 'bg-blue-600 hover:bg-blue-700 text-white'
                   }`}
+                disabled={connected || connectedLoading}
               >
                 {connected ? (
                   <span className="flex items-center space-x-2">
@@ -247,7 +314,14 @@ const UpdatesPage: React.FC = () => {
                     <span>Connected</span>
                   </span>
                 ) : (
-                  'Connect'
+                  connectedLoading ? (
+                    <span className="flex items-center space-x-2">
+                      <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                      <span>Connecting...</span>
+                    </span>
+                  ) : (
+                    <span>Connect</span>
+                  )
                 )}
               </button>
               <button
@@ -257,8 +331,9 @@ const UpdatesPage: React.FC = () => {
                     ? 'bg-red-600 hover:bg-red-700 text-white'
                     : 'bg-gray-600 hover:bg-gray-700 text-white'
                   }`}
+                disabled={!connected || stopServerloading}
               >
-                Stop Server and Disconnect
+                {stopServerloading ? 'Stopping Server...' : "Stop Server and Disconnect"}
               </button>
             </div>
           </div>

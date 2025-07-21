@@ -133,7 +133,7 @@ const HelpPage: React.FC = () => {
               <label className="block text-sm font-medium text-gray-700 mb-2">Web Socket Port (Optional)</label>
               <input
                 placeholder="3002"
-                value={port}
+                value={websocketport}
                 onChange={e => setWebsocketPort(e.target.value)}
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
               />
