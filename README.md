@@ -8,7 +8,7 @@ A powerful CLI tool that uses autonomous agents to crawl, analyse, and test the 
 
 This is simply the React frontend of the agent. You can find the npm package at [npm package](https://www.npmjs.com/package/qa-agent)
 
-> ** ⚠️ Warning**
+> ⚠️ Warning
 > This product is currently in Beta/MVP stage. Features may be incomplete, unstable, or subject to breaking changes. Please create an issue if you encounter any problems.
  
 ---
