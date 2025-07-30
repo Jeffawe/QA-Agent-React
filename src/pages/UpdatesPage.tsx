@@ -19,7 +19,6 @@ const message = `QA Agent is currently in beta. Please note:
 - I appreciate your feedback as I improve the tool`;
 
 const UpdatesPage: React.FC = () => {
-  const [port, setPort] = useState('3001');
   const [websocketport, setwebsocketPort] = useState('3002');
   const [connected, setConnected] = useState(false);
   const [updates, setUpdates] = useState<PageDetails[]>([]);
@@ -29,7 +28,6 @@ const UpdatesPage: React.FC = () => {
   const socketRef = useRef<WebSocket | null>(null);
 
   //Loading
-  const [startServerloading, setstartServerLoading] = useState(false);
   const [stopServerloading, setStopServerLoading] = useState(false);
   const [connectedLoading, setConnectedLoading] = useState(false);
 
@@ -100,7 +98,6 @@ const UpdatesPage: React.FC = () => {
   const disconnect = () => {
     try {
       setStopServerLoading(true);
-      fetch(`http://localhost:${port}/stop/1`);
       if (socketRef.current) {
         socketRef.current.close();
         socketRef.current = null;
@@ -116,57 +113,6 @@ const UpdatesPage: React.FC = () => {
       setStopServerLoading(false);
     }
   }
-
-  const handleStartServer = async () => {
-    // Ensure loading state is always reset
-    setstartServerLoading(true);
-
-    let timeoutId;
-
-    try {
-      // Create an AbortController for timeout handling
-      const controller = new AbortController();
-      timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
-
-      const response = await fetch(`http://localhost:${port}/start/1`, {
-        signal: controller.signal,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      // Clear the timeout if request succeeds
-      clearTimeout(timeoutId);
-      timeoutId = null;
-
-      if (!response.ok) {
-        throw new Error(`Server responded with status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log('Server response:', data);
-
-    } catch (error: unknown) {
-      // Clear timeout if it's still running
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-      }
-
-      if (typeof error === 'object' && error !== null && 'name' in error && (error as { name: string }).name === 'AbortError') {
-        alert('Request timed out. The server may be down or not responding.');
-        console.error('Request timed out after 10 seconds');
-      } else if (error instanceof TypeError && error.message.includes('fetch')) {
-        alert('Failed to connect to server. Please check if the server is running and the port is correct.');
-        console.error('Network error:', error);
-      } else {
-        alert('Failed to start agent. Please try again.');
-        console.error('Failed to start agent:', error);
-      }
-    } finally {
-      // Ensure loading is always set to false
-      setstartServerLoading(false);
-    }
-  };
 
   // Fixed Event handlers
   const handleNewLog = (data: WebSocketData) => {
@@ -230,31 +176,6 @@ const UpdatesPage: React.FC = () => {
                     <p className="text-gray-600 leading-relaxed mb-4">
                       Monitor your QA Agent in real-time as it crawls and analyzes your website. This interface provides live updates and detailed analysis data.
                     </p>
-
-                    {/* Server Start Section */}
-                    <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-4">
-                      <h4 className="font-semibold text-purple-900 mb-3 flex items-center">
-                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                        </svg>
-                        Start Localhost Server
-                      </h4>
-                      <p className="text-sm text-purple-800 mb-3">If your QA Agent isn't running yet, start it here:</p>
-                      <div className="flex items-center space-x-3">
-                        <input
-                          placeholder="Server port (e.g. 8080)"
-                          className="flex-1 p-2 text-sm border border-purple-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                          value={port}
-                          onChange={(e) => setPort(e.target.value)}
-                        />
-                        <button
-                          onClick={handleStartServer}
-                          disabled={!port || startServerloading}
-                          className="px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-md hover:bg-purple-700 transition-colors duration-200">
-                          {startServerloading ? "Starting..." : "Start Server"}
-                        </button>
-                      </div>
-                    </div>
 
                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                       <h4 className="font-semibold text-blue-900 mb-2">How to Monitor:</h4>

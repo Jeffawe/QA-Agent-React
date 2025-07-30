@@ -17,9 +17,39 @@ const HelpPage: React.FC = () => {
   const [url, setUrl] = useState('');
   const [port, setPort] = useState('3001');
   const [websocketport, setWebsocketPort] = useState('3002');
+  const [testMode, setTestMode] = useState(false);
 
   const generateCommand = () => {
-    return `agent-run --goal='${goal}' --key='${key}' --url='${url}' --port=${port} --websocket=${websocketport}`;
+    return `agent-run --goal='${goal}' --key='${key}' --url='${url}' --port=${port} --websocket=${websocketport} --test-mode=${testMode}`;
+  };
+
+  const generateConfigCommand = () => {
+    return `agent-run --config='~/Downloads/qa-agent-config.json'`;
+  };
+
+  const generateAndDownloadConfig = () => {
+    const configContent = `{
+      "goal": "${goal}",
+      "key": "${key}",
+      "url": "${url}",
+      "port": ${port},
+      "websocket": ${websocketport},
+      "test-mode": ${testMode}
+    }`;
+
+    // Create blob and download
+    const blob = new Blob([configContent], {
+      type: 'application/json'
+    });
+
+    const blobUrl = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = blobUrl;
+    a.download = 'qa-agent-config.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(blobUrl);
   };
 
   return (
@@ -75,11 +105,28 @@ const HelpPage: React.FC = () => {
           <pre className="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm overflow-x-auto">npm install -g qa-agent@beta</pre>
         </div>
 
+        {/* Test Section */}
+        <div className="bg-white rounded-xl shadow-lg p-6 mb-6 border border-gray-200">
+          <h3 className="text-xl font-semibold mb-3 text-gray-800">Beta Testing</h3>
+          <p className="text-gray-600 mb-4">
+            Test Mode should only be set to true if you are a verified beta tester. If not, please leave it as false.
+            Verified testers do not need to input an API key (GenAI Key)
+          </p>
+          <p className="text-gray-600 mb-4">
+            Users can join as beta testers to get limited access with a Gemini API key.
+            <a href="/testing" className="text-blue-600 hover:text-blue-800 underline ml-1">
+              Visit our Testing page
+            </a> to sign up and get your access credentials.
+          </p>
+        </div>
+
         {/* Usage Section */}
         <div className="bg-white rounded-xl shadow-lg p-6 mb-6 border border-gray-200">
           <h3 className="text-xl font-semibold mb-3 text-gray-800">Basic Usage</h3>
           <p className="text-gray-600 mb-3">Run the agent with the following command structure (Use the command generator below to get started):</p>
-          <pre className="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm overflow-x-auto">agent-run --goal='...' --key='...' --url='...' --port=3001 --websocket=3002</pre>
+          <pre className="bg-gray-900 text-green-400 p-4 mb-3 rounded-lg font-mono text-sm overflow-x-auto">agent-run --goal='...' --key='...' --url='...' --port=3001 --websocket=3002 --test-mode=false</pre>
+          <p className="text-gray-600 mb-3">You can also generate a config json file with the following command structure (Use the command generator below to get started): </p>
+          <pre className="bg-gray-900 text-green-400 p-4 mb-3 rounded-lg font-mono text-sm overflow-x-auto">agent-run --config='./path/to/config.json'</pre>
         </div>
 
         {/* Command Generator */}
@@ -139,6 +186,18 @@ const HelpPage: React.FC = () => {
               />
             </div>
 
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Test Mode (Optional)</label>
+              <select
+                value={testMode.toString()}
+                onChange={e => setTestMode(e.target.value === 'true')}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+              >
+                <option value="false">False</option>
+                <option value="true">True</option>
+              </select>
+            </div>
+
             <div className="mt-6">
               <label className="block text-sm font-medium text-gray-700 mb-2">Generated Command (Copy this and paste in your terminal to run the service)</label>
               <div className="relative">
@@ -153,16 +212,26 @@ const HelpPage: React.FC = () => {
                 </button>
               </div>
             </div>
+            <button
+              onClick={generateAndDownloadConfig}
+              className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition-colors duration-200"
+            >
+              Generate Config File
+            </button>
+            <div className="mt-6">
+              <div className="relative">
+                <pre className="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm overflow-x-auto border-2 border-blue-200">
+                  {generateConfigCommand()}
+                </pre>
+                <button
+                  onClick={() => navigator.clipboard.writeText(generateCommand())}
+                  className="absolute top-2 right-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs transition-colors duration-200"
+                >
+                  Copy
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
-
-        {/* Start Server Section */}
-        <div className="bg-white rounded-xl shadow-lg p-6 mb-6 border border-gray-200">
-          <h3 className="text-xl font-semibold mb-3 text-gray-800">Starting the Server</h3>
-          <p className="text-gray-600 mb-3">The Server will be running on the port. Simply run the command below to start the server or go to
-            the <Link to="/updates" className="text-blue-600 hover:underline">Updates </Link> page
-            to start it</p>
-          <pre className="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm overflow-x-auto">curl http://localhost:{port}/start/1</pre>
         </div>
 
         {/* Live Updates Section */}
