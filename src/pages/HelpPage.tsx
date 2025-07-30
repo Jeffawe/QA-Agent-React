@@ -110,7 +110,7 @@ const HelpPage: React.FC = () => {
           <h3 className="text-xl font-semibold mb-3 text-gray-800">Beta Testing</h3>
           <p className="text-gray-600 mb-4">
             Test Mode should only be set to true if you are a verified beta tester. If not, please leave it as false.
-            Verified testers do not need to input an API key (GenAI Key)
+            Verified testers do not need to input an API key (GenAI Key) instead use the unique key sent to your email.
           </p>
           <p className="text-gray-600 mb-4">
             Users can join as beta testers to get limited access with a Gemini API key.
@@ -152,7 +152,6 @@ const HelpPage: React.FC = () => {
                 value={key}
                 onChange={e => setKey(e.target.value)}
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                type="password"
               />
             </div>
 

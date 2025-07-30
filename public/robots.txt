@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://qa-agent.site/sitemap.xml
