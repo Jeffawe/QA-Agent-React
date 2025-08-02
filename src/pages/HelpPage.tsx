@@ -114,7 +114,7 @@ const HelpPage: React.FC = () => {
           </p>
           <p className="text-gray-600 mb-4">
             Users can join as beta testers to get limited access with a Gemini API key.
-            <a href="/testing" className="text-blue-600 hover:text-blue-800 underline ml-1">
+            <a href="/guide" className="text-blue-600 hover:text-blue-800 underline ml-1">
               Visit our Testing page
             </a> to sign up and get your access credentials.
           </p>
@@ -146,7 +146,7 @@ const HelpPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Google GenAI Key (We use Gemini as the model.)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Google GenAI Key (We use Gemini as the model.) (For Test users set this as the unique key given to you)</label>
               <input
                 placeholder="Your Google Generative AI API key"
                 value={key}
@@ -186,7 +186,7 @@ const HelpPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Test Mode (Optional)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Test Mode (Optional) (For Test Users set this as true)</label>
               <select
                 value={testMode.toString()}
                 onChange={e => setTestMode(e.target.value === 'true')}

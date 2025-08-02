@@ -5,6 +5,7 @@ import HelpPage from './pages/HelpPage';
 import UpdatesPage from './pages/UpdatesPage';
 import { Analytics } from "@vercel/analytics/react";
 import TestingPage from './pages/TestingPage';
+import TestingGuide from './pages/TestingGuide';
 
 
 const App: React.FC = () => {
@@ -29,7 +30,7 @@ const App: React.FC = () => {
             <nav className="space-x-4">
               <Link to="/" className="hover:text-teal-300">Home</Link>
               <Link to="/help" className="hover:text-teal-300">Help</Link>
-              <Link to="/testing" className="hover:text-teal-300">Testing</Link>
+              <Link to="/guide" className="hover:text-teal-300">Testing</Link>
               <Link to="/updates" className="hover:text-teal-300">Updates</Link>
             </nav>
           </div>
@@ -40,8 +41,9 @@ const App: React.FC = () => {
           <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/help" element={<HelpPage />} />
-            <Route path="/testing" element={<TestingPage />} />
+            <Route path="/guide" element={<TestingPage />} />
             <Route path="/updates" element={<UpdatesPage />} />
+            <Route path="/test" element={<TestingGuide />} />
             {/* Add more routes as needed */}
           </Routes>
         </main>
