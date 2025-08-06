@@ -1,5 +1,4 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 import BetaWarning from '../../BetaWarning';
 
 const betaMessage: string = `QA Agent Testing Program is currently accepting new beta testers. Join our community of early adopters and help shape the future of automated QA testing.`;
@@ -176,12 +175,6 @@ const TestingPage: React.FC = () => {
             Join our community of beta testers and help us build the most powerful automated QA tool in the market.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link 
-              to="/help" 
-              className="bg-white text-blue-600 px-6 py-3 rounded-lg font-medium hover:bg-gray-100 transition-colors duration-200"
-            >
-              Learn More About QA Agent
-            </Link>
             <a 
               href="https://forms.gle/hVQZCrochGCFnEd28" 
               target="_blank" 
