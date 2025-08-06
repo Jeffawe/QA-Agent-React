@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import BetaWarning from './BetaWarning';
+import BetaWarning from '../../BetaWarning';
 
 const betaMessage: string = `QA Agent Testing Program is currently accepting new beta testers. Join our community of early adopters and help shape the future of automated QA testing.`;
 

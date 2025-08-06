@@ -1,11 +1,11 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import LandingPage from './pages/LandingPage';
-import HelpPage from './pages/HelpPage';
 import UpdatesPage from './pages/UpdatesPage';
 import { Analytics } from "@vercel/analytics/react";
-import TestingPage from './pages/TestingPage';
+import TestingPage from './pages/docs/content/TestingPage';
 import TestingGuide from './pages/TestingGuide';
+import DocsPage from './pages/docs/DocsPage';
 
 
 const App: React.FC = () => {
@@ -14,25 +14,29 @@ const App: React.FC = () => {
       <div className="min-h-screen flex flex-col bg-gray-50">
         {/* Navbar */}
         <header className="bg-gray-900 text-white shadow">
-
-          <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-            <h1 className="text-xl font-semibold flex items-center space-x-2">
-              <Link to="/" className="flex items-center space-x-2">
-                <span className='text-2xl'>QA Agent</span>
-                <span className="relative">
-                  <span className="bg-gradient-to-r bg-blue-500 text-white text-xs px-2 py-1 rounded-full font-bold tracking-wide shadow-md border border-amber-300">
-                    BETA
+          <div className="container mx-auto px-4 py-4">
+            {/* Mobile responsive layout */}
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-3 sm:space-y-0">
+              {/* Logo section */}
+              <h1 className="text-xl font-semibold flex justify-center sm:justify-start">
+                <Link to="/" className="flex items-center space-x-2">
+                  <span className='text-2xl'>QA Agent</span>
+                  <span className="relative">
+                    <span className="bg-gradient-to-r bg-blue-500 text-white text-xs px-2 py-1 rounded-full font-bold tracking-wide shadow-md border border-amber-300">
+                      BETA
+                    </span>
+                    <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
                   </span>
-                  <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
-                </span>
-              </Link>
-            </h1>
-            <nav className="space-x-4">
-              <Link to="/" className="hover:text-teal-300">Home</Link>
-              <Link to="/help" className="hover:text-teal-300">Help</Link>
-              <Link to="/guide" className="hover:text-teal-300">Testing</Link>
-              <Link to="/updates" className="hover:text-teal-300">Updates</Link>
-            </nav>
+                </Link>
+              </h1>
+              
+              {/* Navigation section */}
+              <nav className="flex justify-center sm:justify-end space-x-4">
+                <Link to="/" className="hover:text-teal-300">Home</Link>
+                <Link to="/docs" className="hover:text-teal-300">Docs</Link>
+                <Link to="/updates" className="hover:text-teal-300">Updates</Link>
+              </nav>
+            </div>
           </div>
         </header>
 
@@ -40,8 +44,8 @@ const App: React.FC = () => {
         <main className="">
           <Routes>
             <Route path="/" element={<LandingPage />} />
-            <Route path="/help" element={<HelpPage />} />
-            <Route path="/guide" element={<TestingPage />} />
+            <Route path="/Docs" element={<DocsPage />} />
+            <Route path="/testing" element={<TestingPage />} />
             <Route path="/updates" element={<UpdatesPage />} />
             <Route path="/test" element={<TestingGuide />} />
             {/* Add more routes as needed */}
