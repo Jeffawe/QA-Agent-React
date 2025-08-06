@@ -56,7 +56,7 @@ const LandingPage: React.FC = () => {
           </p>
 
           <p className="text-lg text-blue-200 opacity-90 leading-relaxed">
-            Click <a href="/help" className="text-teal-300 hover:underline">here</a> for Help to start using the agent.
+            Click <a href="/docs" className="text-teal-300 hover:underline">here</a> for Help to start using the agent.
           </p>
         </div>
 
