@@ -50,7 +50,7 @@ const configurationFields: ConfigField[] = [
         placeholder: "https://yourwebsite.com",
         required: true,
         disabled: false,
-        note: "Ensure the website is publicly accessible"
+        note: "Works perfectly with public websites. Still testing with local ones but feel free to try it out!"
     },
     {
         key: "port",
