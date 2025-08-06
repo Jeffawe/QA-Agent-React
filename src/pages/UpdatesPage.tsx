@@ -64,6 +64,10 @@ const UpdatesPage: React.FC = () => {
               alert(`🔗 Connection confirmed: ${message.data.message}`);
               break;
 
+            case 'STOP_WARNING':
+              alert(`⚠️ ${message.data.message}`);
+              break;
+
             case 'INITIAL_DATA':
               handleNewCrawlMapUpdate(message.data);
               handleMultipleNewLogs(message.data);

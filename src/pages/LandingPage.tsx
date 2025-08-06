@@ -51,7 +51,7 @@ const LandingPage: React.FC = () => {
           </p>
 
           <p className="text-lg text-blue-200 opacity-90 leading-relaxed">
-            Built using Puppeteer and Node.js, this agent helps developers improve their site's
+            Built using Playwright and Node.js, this agent helps developers improve their site's
             quality through automation.
           </p>
 
