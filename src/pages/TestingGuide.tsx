@@ -59,6 +59,15 @@ const TestingGuide: React.FC = () => {
                                         Can Crawl through and provide UI/UX and visual bug analysis for all the pages that make up a website.
                                     </p>
                                 </div>
+                                <div className="bg-blue-400 bg-opacity-30 rounded-lg p-4 border border-blue-300">
+                                    <h4 className="font-semibold mb-2 flex items-center">
+                                        <span className="w-2 h-2 bg-white rounded-full mr-2"></span>
+                                        Achieve a QA goal given to it
+                                    </h4>
+                                    <p className="text-blue-100 text-sm">
+                                        Pass a QA goal to the agent (Like Login or Add a new product) and it will do its best to achieve that goal (Still perfecting it so test this out as much as you can).
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     )}
@@ -145,7 +154,7 @@ const TestingGuide: React.FC = () => {
                                         </ul>
                                     </div>
                                     <a
-                                        href="/help"
+                                        href="/docs"
                                         className="inline-flex items-center bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg transition-colors duration-200 font-medium"
                                     >
                                         <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
