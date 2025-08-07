@@ -27,7 +27,7 @@ const configurationFields: ConfigField[] = [
         description: "Define what the QA Agent should focus on during testing. This guides the AI's analysis and reporting priorities.",
         placeholder: "e.g., 'Find all broken links and UI inconsistencies'",
         required: true,
-        disabled: true,
+        disabled: false,
         note: "Currently not configurable in beta version"
     },
     {

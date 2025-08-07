@@ -136,7 +136,6 @@ const SetupAndUsage = () => {
                         <input
                             placeholder="e.g., 'Find all broken links and UI inconsistencies'"
                             value={defaultGoal}
-                            disabled
                             className="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed text-sm sm:text-base"
                         />
                     </div>
