@@ -5,7 +5,7 @@ interface BetaWarningProps {
 }
 
 const BetaWarning: React.FC<BetaWarningProps> = ({ message }) => { 
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   return ( 
     <div className="bg-gradient-to-r from-yellow-50 to-amber-50 border-l-4 border-yellow-400 p-4 rounded-lg shadow-md mb-6"> 

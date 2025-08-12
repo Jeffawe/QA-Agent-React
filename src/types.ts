@@ -16,6 +16,19 @@ export interface LinkInfo {
   visited: boolean;
 }
 
+export interface TabProps {
+  logs: string[];
+  connect: (url: string) => void;
+  disconnect: () => void;
+  setwebsocketPort?: React.Dispatch<React.SetStateAction<string>>;
+  websocketport?: string;
+  updates: PageDetails[];
+  connected: boolean;
+  connectedLoading?: boolean;
+  stopServerloading?: boolean;
+}
+
+
 export interface Bug {
     description: string;
     selector: string;

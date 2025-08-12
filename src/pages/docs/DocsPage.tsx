@@ -4,6 +4,7 @@ import GettingStarted from "./content/GettingStarted";
 import SetupAndUsage from "./content/SetupAndUsage";
 import { ChevronDown, ChevronRight, Menu, X } from "lucide-react";
 import TestingPage from "./content/TestingPage";
+import WebConfig from "./content/WebConfig";
 
 const docsStructure = [
     {
@@ -13,22 +14,33 @@ const docsStructure = [
         children: []
     },
     {
-        id: 'setup',
-        title: 'Setup',
+        id: 'web',
+        title: 'Web Setup',
         children: [
             {
-                id: 'setup/installation',
+                id: 'web/configuration',
+                title: 'Configuration',
+                component: WebConfig
+            }
+        ]
+    },
+    {
+        id: 'local-setup',
+        title: 'Local Setup',
+        children: [
+            {
+                id: 'local-setup/installation',
                 title: 'Installation',
                 component: SetupAndUsage
             },
             {
-                id: 'setup/configuration',
+                id: 'local-setup/configuration',
                 title: 'Configuration',
                 component: Configuration
             }
         ]
     },
-        {
+    {
         id: 'testing',
         title: 'Testing',
         component: TestingPage,
