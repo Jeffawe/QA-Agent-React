@@ -16,7 +16,6 @@ const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connec
 
     const startWebAnalysis = async () => {
         try {
-            let endPoint = 'start';
             setIsLoading(true);
             if (!websiteUrl.trim()) {
                 alert('Please enter a website URL');
@@ -40,14 +39,16 @@ const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connec
                 }
             });
 
-            if(apiKey.startsWith('TEST')) {
-                endPoint = 'test';
+            let endPoint = `start/${sessionId}`;
+
+            if (apiKey.startsWith('TEST')) {
+                endPoint = `test/${apiKey}`;
             }
 
             // Clear the API key from memory immediately
             setApiKey('');
 
-            const response = await axios.post(`${baseUrl}/${endPoint}/${sessionId}`, {
+            const response = await axios.post(`${baseUrl}/${endPoint}`, {
                 goal: goal,
                 url: websiteUrl
             }, {
