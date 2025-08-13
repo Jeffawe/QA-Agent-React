@@ -169,7 +169,7 @@ const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connec
                         <input
                             type="string"
                             placeholder="Enter your Goal"
-                            value={apiKey}
+                            value={goal}
                             onChange={e => setGoal(e.target.value)}
                             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
                             disabled={isAnalyzing}
