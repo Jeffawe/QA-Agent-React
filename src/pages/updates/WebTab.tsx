@@ -6,7 +6,7 @@ const baseUrl = import.meta.env.VITE_API_URL;
 
 const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connected }) => {
     const [websiteUrl, setWebsiteUrl] = useState('');
-    const [, setSessionId] = useState('');
+    const [sessionId, setSessionId] = useState('');
     const [apiKey, setApiKey] = useState('');
     const [goal, setGoal] = useState('');
     const [showLogs, setShowLogs] = useState(true);
@@ -16,6 +16,7 @@ const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connec
 
     const startWebAnalysis = async () => {
         try {
+            let endPoint = 'start';
             setIsLoading(true);
             if (!websiteUrl.trim()) {
                 alert('Please enter a website URL');
@@ -39,10 +40,14 @@ const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connec
                 }
             });
 
+            if(apiKey.startsWith('TEST')) {
+                endPoint = 'test';
+            }
+
             // Clear the API key from memory immediately
             setApiKey('');
 
-            const response = await axios.post(`${baseUrl}/start/${sessionId}`, {
+            const response = await axios.post(`${baseUrl}/${endPoint}/${sessionId}`, {
                 goal: goal,
                 url: websiteUrl
             }, {
@@ -52,7 +57,7 @@ const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connec
             });
 
             console.log('✅ Session started successfully:', response.data);
-            connect(websiteUrl);
+            connect(`wss://${baseUrl}:3002`);
             setIsLoading(false);
             alert('Session started successfully. Currently Analyzing...');
         } catch (error: unknown) {
@@ -78,8 +83,13 @@ const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connec
     }
 
     const stopAnalysis = () => {
-        disconnect();
-        setIsAnalyzing(false);
+        try {
+            axios.get(`${baseUrl}/stop/${sessionId}`);
+            disconnect();
+            setIsAnalyzing(false);
+        } catch (error) {
+            console.error('Error stopping analysis:', error);
+        }
     };
 
     return (

@@ -1,0 +1,9 @@
+{
+    "data": {},
+    "goal": "Crawl the entire page and check for UI bugs",
+    "key": "",
+    "url": "http://localhost:5173/",
+    "port": 3001,
+    "websocket": 3002,
+    "test-mode": false
+}
