@@ -53,6 +53,16 @@ const UpdatesPage: React.FC = () => {
     };
   }, []);
 
+  useEffect(() => {
+    fetch('https://qa-node-backend.onrender.com/health')
+      .then(() => console.log('Backend is waking up...'))
+      .catch(err => console.error('Wake-up ping failed:', err));
+
+    fetch('https://qa-agent-6x82.onrender.com/health')
+      .then(() => console.log('Backend is waking up...'))
+      .catch(err => console.error('Wake-up ping failed:', err));
+  }, []);
+
   const switchTab = (tab: string) => {
     setActiveTab(tab);
     window.location.hash = `#tab=${tab}`;
@@ -226,9 +236,9 @@ const UpdatesPage: React.FC = () => {
               connectedLoading={connectedLoading}
               stopServerloading={stopServerloading}
             />
-            : <WebTab logs={logs} connect={connect} disconnect={disconnect} 
-                updates={updates} connected={connected}/>
-            }
+            : <WebTab logs={logs} connect={connect} disconnect={disconnect}
+              updates={updates} connected={connected} />
+          }
         </div>
       </div>
     </div>

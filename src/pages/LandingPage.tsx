@@ -19,14 +19,24 @@ const LandingPage: React.FC = () => {
     };
   }, []);
 
+  useEffect(() => {
+    fetch('https://qa-node-backend.onrender.com/health')
+      .then(() => console.log('Backend is waking up...'))
+      .catch(err => console.error('Wake-up ping failed:', err));
+
+    fetch('https://qa-agent-6x82.onrender.com/health')
+      .then(() => console.log('Backend is waking up...'))
+      .catch(err => console.error('Wake-up ping failed:', err));
+  }, []);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900 flex items-center justify-center px-6">
       <div className="text-center max-w-4xl mx-auto">
         {/* Animated Title */}
         <h1
           className={`text-6xl md:text-8xl font-bold text-white mb-8 transition-all duration-1000 ease-out ${titleVisible
-              ? 'opacity-100 transform translate-y-0'
-              : 'opacity-0 transform translate-y-8'
+            ? 'opacity-100 transform translate-y-0'
+            : 'opacity-0 transform translate-y-8'
             }`}
           style={{
             textShadow: '0 4px 20px rgba(0,0,0,0.3)',
@@ -42,8 +52,8 @@ const LandingPage: React.FC = () => {
         {/* Animated Content */}
         <div
           className={`transition-all duration-1000 ease-out delay-300 ${contentVisible
-              ? 'opacity-100 transform translate-y-0'
-              : 'opacity-0 transform translate-y-8'
+            ? 'opacity-100 transform translate-y-0'
+            : 'opacity-0 transform translate-y-8'
             }`}
         >
           <p className="text-xl md:text-2xl text-blue-100 mb-6 leading-relaxed">

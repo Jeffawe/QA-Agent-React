@@ -1,13 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 
 const TestingGuide: React.FC = () => {
     const [isLatestFeaturesExpanded, setIsLatestFeaturesExpanded] = useState(false);
-
-    useEffect(() => {
-        fetch('https://qa-node-backend.onrender.com/health')
-            .then(() => console.log('Backend is waking up...'))
-            .catch(err => console.error('Wake-up ping failed:', err));
-    }, []);
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
