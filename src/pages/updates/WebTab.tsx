@@ -6,6 +6,7 @@ const baseUrl = import.meta.env.VITE_API_URL;
 
 const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connected }) => {
     const [websiteUrl, setWebsiteUrl] = useState('');
+    const [, setWebsocketPort] = useState('');
     const [sessionId, setSessionId] = useState('');
     const [apiKey, setApiKey] = useState('');
     const [goal, setGoal] = useState('');
@@ -16,6 +17,8 @@ const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connec
 
     const startWebAnalysis = async () => {
         try {
+            console.log("🚀 Starting web analysis...");
+
             setIsLoading(true);
             if (!websiteUrl.trim()) {
                 alert('Please enter a website URL');
@@ -57,14 +60,50 @@ const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connec
                 }
             });
 
-            console.log('✅ Session started successfully:', response.data);
-            connect(`wss://${baseUrl}:3002`);
+            if (response && response.data) {
+                // Get the fresh websocket port from response
+                const freshWebsocketPort = response.data.websocketport;
+                const freshSessionId = response.data.sessionId;
+                console.log("🔍 websocketport exists?", 'websocketport' in response.data);
+
+                if (!freshWebsocketPort) {
+                    console.error("❌ No websocketport in response!");
+                    alert("❌ No websocket port received from server");
+                    return;
+                }
+
+                // Update state
+                setWebsocketPort(freshWebsocketPort);
+                setSessionId(freshSessionId);
+
+                // Clean baseUrl (remove http/https prefix)
+                const cleanBaseUrl = baseUrl.replace(/^https?:\/\//, '');
+
+                // Use the fresh value directly - don't rely on state!
+                const websocketUrl = `wss://${cleanBaseUrl}:${freshWebsocketPort}`;
+                console.log('🚀 About to call connect...');
+
+                // Call connect and wait a moment
+                connect(websocketUrl);
+
+                // Give a small delay to see if connect() runs
+                setTimeout(() => {
+                    console.log('✅ connect() call completed (after 1s delay)');
+                }, 1000);
+
+            } else {
+                console.error("❌ Invalid response structure:", response);
+                alert("❌ Invalid response from server");
+                return;
+            }
+
             setIsLoading(false);
-            alert('Session started successfully. Currently Analyzing...');
+
         } catch (error: unknown) {
             const err = error as { response?: { data?: unknown }; message?: string };
             const errorMessage = err.response?.data || err.message || String(error);
             console.error('❌ Error starting session:', errorMessage);
+            console.error('❌ Full error object:', error);
             alert(`❌ Error starting session: ${errorMessage}`);
             setIsLoading(false);
             stopAnalysis()
@@ -86,9 +125,15 @@ const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connec
         }
     }
 
-    const stopAnalysis = () => {
+    const stopAnalysis = async () => {
         try {
-            axios.get(`${baseUrl}/stop/${sessionId}`);
+            try {
+                await axios.get(`${baseUrl}/stop/${sessionId}`, {
+                    timeout: 5000, // 5 seconds
+                });
+            } catch (error) {
+                console.error('Error stopping analysis:', error);
+            }
             disconnect();
             setIsAnalyzing(false);
         } catch (error) {

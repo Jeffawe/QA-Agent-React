@@ -12,6 +12,8 @@ interface InitialData {
   timestamp: number;
 }
 
+  const BASE_URL = import.meta.env.VITE_API_URL;
+
 const message = `QA Agent is currently in beta. Please note:
 
 - Some features may not work as expected
@@ -54,11 +56,7 @@ const UpdatesPage: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    fetch('https://qa-node-backend.onrender.com/health')
-      .then(() => console.log('Backend is waking up...'))
-      .catch(err => console.error('Wake-up ping failed:', err));
-
-    fetch('https://qa-agent-6x82.onrender.com/health')
+    fetch(`${BASE_URL}/health`)
       .then(() => console.log('Backend is waking up...'))
       .catch(err => console.error('Wake-up ping failed:', err));
   }, []);
@@ -73,8 +71,11 @@ const UpdatesPage: React.FC = () => {
       setConnectedLoading(true);
       const ws = new WebSocket(socketLocalPort);
 
+      console.log('WebSocket connected to:', socketLocalPort);
+
       ws.onopen = () => {
         setConnected(true);
+        console.log('WebSocket connection opened.');
         setConnectedLoading(false);
       };
 

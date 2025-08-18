@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
+const BASE_URL = import.meta.env.VITE_API_URL;
+
 const LandingPage: React.FC = () => {
   const [titleVisible, setTitleVisible] = useState(false);
   const [contentVisible, setContentVisible] = useState(false);
@@ -24,7 +26,7 @@ const LandingPage: React.FC = () => {
       .then(() => console.log('Backend is waking up...'))
       .catch(err => console.error('Wake-up ping failed:', err));
 
-    fetch('https://qa-agent-6x82.onrender.com/health')
+    fetch(`${BASE_URL}/health`)
       .then(() => console.log('Backend is waking up...'))
       .catch(err => console.error('Wake-up ping failed:', err));
   }, []);

@@ -18,7 +18,7 @@ export interface LinkInfo {
 
 export interface TabProps {
   logs: string[];
-  connect: (url: string) => void;
+  connect: (socketLocalPort: string) => void;
   disconnect: () => void;
   setwebsocketPort?: React.Dispatch<React.SetStateAction<string>>;
   websocketport?: string;
