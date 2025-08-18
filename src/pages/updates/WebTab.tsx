@@ -65,11 +65,8 @@ const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connec
             const err = error as { response?: { data?: unknown }; message?: string };
             const errorMessage = err.response?.data || err.message || String(error);
             console.error('❌ Error starting session:', errorMessage);
-            if(errorMessage == 'Unauthorized') {
-                alert('Unauthorized. Please check your API key.');
-            }else{
-                alert('Error starting session. Please try again.');
-            }
+            alert(`❌ Error starting session: ${errorMessage}`);
+            setIsLoading(false);
             stopAnalysis()
         }
     };
