@@ -14,6 +14,7 @@ const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connec
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [isExpanded, setIsExpanded] = useState(false);
     const [, setIsLoading] = useState(false);
+    const [stopping, setStopping] = useState(false);
 
     const startWebAnalysis = async () => {
         try {
@@ -30,17 +31,28 @@ const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connec
             }
             setIsAnalyzing(true);
 
-            const data = await getId();
-            const sessionId = data.sessionId;
+            let sessionId = '';
+
+            if (apiKey.startsWith('TEST')) {
+                sessionId = "test_" + apiKey;
+            } else {
+                const data = await getId();
+                sessionId = data.sessionId;
+            }
+
             setSessionId(sessionId);
 
-            await axios.post(`${baseUrl}/setup-key/${sessionId}`, {
+            const response2 = await axios.post(`${baseUrl}/setup-key/${sessionId}`, {
                 apiKey: apiKey
             }, {
                 headers: {
                     'Content-Type': 'application/json'
                 }
             });
+
+            if (!response2 || !response2.data || !response2.data.success) {
+                throw new Error('API key setup failed');
+            }
 
             let endPoint = `start/${sessionId}`;
 
@@ -60,6 +72,8 @@ const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connec
                 }
             });
 
+            console.log("🚀 Response from start:", response.data);
+
             if (response && response.data) {
                 // Get the fresh websocket port from response
                 const freshWebsocketPort = response.data.websocketport;
@@ -76,15 +90,14 @@ const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connec
                 setWebsocketPort(freshWebsocketPort);
                 setSessionId(freshSessionId);
 
-                // Clean baseUrl (remove http/https prefix)
-                const cleanBaseUrl = baseUrl.replace(/^https?:\/\//, '');
-
-                // Use the fresh value directly - don't rely on state!
-                const websocketUrl = `wss://${cleanBaseUrl}:${freshWebsocketPort}`;
-                console.log('🚀 About to call connect...');
+                const url = new URL(baseUrl);
+                // Map HTTP/HTTPS to WS/WSS
+                const wsProtocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
+                const cleanBaseUrlWithPort = `${wsProtocol}//${url.hostname}:${freshWebsocketPort}`;
+                console.log('🚀 About to call connect...', cleanBaseUrlWithPort);
 
                 // Call connect and wait a moment
-                connect(websocketUrl);
+                connect(cleanBaseUrlWithPort);
 
                 // Give a small delay to see if connect() runs
                 setTimeout(() => {
@@ -127,9 +140,10 @@ const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connec
 
     const stopAnalysis = async () => {
         try {
+            setStopping(true);
             try {
                 await axios.get(`${baseUrl}/stop/${sessionId}`, {
-                    timeout: 5000, // 5 seconds
+                    timeout: 100000, // 5 seconds
                 });
             } catch (error) {
                 console.error('Error stopping analysis:', error);
@@ -138,6 +152,8 @@ const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connec
             setIsAnalyzing(false);
         } catch (error) {
             console.error('Error stopping analysis:', error);
+        } finally {
+            setStopping(false);
         }
     };
 
@@ -247,9 +263,10 @@ const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connec
                         {(connected || isAnalyzing) && (
                             <button
                                 onClick={stopAnalysis}
+                                disabled={stopping}
                                 className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-all duration-200"
                             >
-                                Stop Analysis
+                                {stopping ? 'Stopping...' : 'Stop Analysis'}
                             </button>
                         )}
                     </div>
