@@ -72,8 +72,6 @@ const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connec
                 }
             });
 
-            console.log("🚀 Response from start:", response.data);
-
             if (response && response.data) {
                 // Get the fresh websocket port from response
                 const freshWebsocketPort = response.data.websocketport;
@@ -94,7 +92,6 @@ const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connec
                 // Map HTTP/HTTPS to WS/WSS
                 const wsProtocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
                 const cleanBaseUrlWithPort = `${wsProtocol}//${url.hostname}:${freshWebsocketPort}`;
-                console.log('🚀 About to call connect...', cleanBaseUrlWithPort);
 
                 // Call connect and wait a moment
                 connect(cleanBaseUrlWithPort);

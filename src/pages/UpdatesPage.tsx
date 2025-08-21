@@ -71,8 +71,6 @@ const UpdatesPage: React.FC = () => {
       setConnectedLoading(true);
       const ws = new WebSocket(socketLocalPort);
 
-      console.log('WebSocket connected to:', socketLocalPort);
-
       ws.onopen = () => {
         setConnected(true);
         console.log('WebSocket connection opened.');
