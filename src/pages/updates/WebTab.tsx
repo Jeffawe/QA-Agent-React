@@ -1,12 +1,12 @@
 import type { TabProps } from "../../types";
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import axios from 'axios';
 
 const baseUrl = import.meta.env.VITE_API_URL;
 
 const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connected }) => {
     const [websiteUrl, setWebsiteUrl] = useState('');
-    const [, setWebsocketPort] = useState('');
+    const [websocketUrl, setWebsocketUrl] = useState('');
     const [sessionId, setSessionId] = useState('');
     const [apiKey, setApiKey] = useState('');
     const [goal, setGoal] = useState('');
@@ -15,6 +15,40 @@ const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connec
     const [isExpanded, setIsExpanded] = useState(false);
     const [, setIsLoading] = useState(false);
     const [stopping, setStopping] = useState(false);
+
+
+    const stopAnalysis = useCallback(async () => {
+        try {
+            setStopping(true);
+            try {
+                await axios.get(`${baseUrl}/stop/${sessionId}`, {
+                    timeout: 100000, // 5 seconds
+                });
+            } catch (error) {
+                console.error('Error stopping analysis:', error);
+            }
+            disconnect();
+            setIsAnalyzing(false);
+        } catch (error) {
+            console.error('Error stopping analysis:', error);
+        } finally {
+            setStopping(false);
+        }
+    }, [disconnect, sessionId]);
+
+    useEffect(() => {
+        if (websocketUrl && isAnalyzing) {
+            console.log('🔌 Establishing WebSocket connection...');
+            connect(websocketUrl);
+
+            // Cleanup function
+            return () => {
+                console.log('🔌 Cleaning up WebSocket connection...');
+                stopAnalysis();
+            };
+        }
+    }, [websocketUrl, isAnalyzing, connect, stopAnalysis]);
+
 
     const startWebAnalysis = async () => {
         try {
@@ -84,8 +118,6 @@ const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connec
                     return;
                 }
 
-                // Update state
-                setWebsocketPort(freshWebsocketPort);
                 setSessionId(freshSessionId);
 
                 const url = new URL(baseUrl);
@@ -93,8 +125,7 @@ const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connec
                 const wsProtocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
                 const cleanBaseUrlWithPort = `${wsProtocol}//${url.hostname}:${freshWebsocketPort}`;
 
-                // Call connect and wait a moment
-                connect(cleanBaseUrlWithPort);
+                setWebsocketUrl(cleanBaseUrlWithPort);
 
                 // Give a small delay to see if connect() runs
                 setTimeout(() => {
@@ -134,25 +165,6 @@ const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connec
             throw error;
         }
     }
-
-    const stopAnalysis = async () => {
-        try {
-            setStopping(true);
-            try {
-                await axios.get(`${baseUrl}/stop/${sessionId}`, {
-                    timeout: 100000, // 5 seconds
-                });
-            } catch (error) {
-                console.error('Error stopping analysis:', error);
-            }
-            disconnect();
-            setIsAnalyzing(false);
-        } catch (error) {
-            console.error('Error stopping analysis:', error);
-        } finally {
-            setStopping(false);
-        }
-    };
 
     return (
         <div className="space-y-6">

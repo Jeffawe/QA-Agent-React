@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import BetaWarning from "./BetaWarning";
 import LocalTab from "./updates/LocalTab";
 import WebTab from "./updates/WebTab";
@@ -12,7 +12,7 @@ interface InitialData {
   timestamp: number;
 }
 
-  const BASE_URL = import.meta.env.VITE_API_URL;
+const BASE_URL = import.meta.env.VITE_API_URL;
 
 const message = `QA Agent is currently in beta. Please note:
 
@@ -66,7 +66,7 @@ const UpdatesPage: React.FC = () => {
     window.location.hash = `#tab=${tab}`;
   };
 
-  const connect = (socketLocalPort: string) => {
+  const connect = useCallback((socketLocalPort: string) => {
     try {
       setConnectedLoading(true);
       const ws = new WebSocket(socketLocalPort);
@@ -96,6 +96,9 @@ const UpdatesPage: React.FC = () => {
           switch (message.type) {
             case 'CONNECTION':
               alert(`🔗 Connection confirmed: ${message.data.message}`);
+              break;
+            case 'ISSUE':
+              alert(`❗Issue detected: ${message.data.message}`);
               break;
             case 'STOP_WARNING':
               alert(`⚠️ ${message.data.message}`);
@@ -128,7 +131,7 @@ const UpdatesPage: React.FC = () => {
       alert('WebSocket connection error. Please check if the port is valid.');
       console.error('WebSocket connection error:', error);
     }
-  };
+  }, []);
 
   const disconnect = () => {
     try {
