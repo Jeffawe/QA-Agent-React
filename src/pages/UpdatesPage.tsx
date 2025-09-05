@@ -68,6 +68,7 @@ const UpdatesPage: React.FC = () => {
 
   const connect = useCallback((socketLocalPort: string) => {
     try {
+      console.log('Connecting to WebSocket...');
       setConnectedLoading(true);
       const ws = new WebSocket(socketLocalPort);
 

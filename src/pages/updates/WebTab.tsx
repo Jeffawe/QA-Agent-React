@@ -3,6 +3,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import axios from 'axios';
 
 const baseUrl = import.meta.env.VITE_API_URL;
+const testKey = import.meta.env.VITE_TEST_KEY;
 
 const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connected }) => {
     const [websiteUrl, setWebsiteUrl] = useState('');
@@ -77,7 +78,8 @@ const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connec
             setSessionId(sessionId);
 
             const response2 = await axios.post(`${baseUrl}/setup-key/${sessionId}`, {
-                apiKey: apiKey
+                apiKey: apiKey,
+                testKey: testKey
             }, {
                 headers: {
                     'Content-Type': 'application/json'
