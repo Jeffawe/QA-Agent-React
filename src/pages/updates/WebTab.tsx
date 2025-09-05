@@ -146,7 +146,6 @@ const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connec
             const err = error as { response?: { data?: unknown }; message?: string };
             const errorMessage = err.response?.data || err.message || String(error);
             console.error('❌ Error starting session:', errorMessage);
-            console.error('❌ Full error object:', error);
             alert(`❌ Error starting session: ${errorMessage}`);
             setIsLoading(false);
             stopAnalysis()
