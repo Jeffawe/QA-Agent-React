@@ -20,7 +20,7 @@ const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connec
     const [isReconnecting, setIsReconnecting] = useState(false);
     const [connectionStatus, setConnectionStatus] = useState<'disconnected' | 'connecting' | 'connected' | 'error' | 'reconnecting'>('disconnected');
 
-    const MAX_RECONNECT_ATTEMPTS = 5;
+    const MAX_RECONNECT_ATTEMPTS = 3;
     const RECONNECT_DELAY = 3000; // 3 seconds
 
     const stopAnalysis = useCallback(async () => {
@@ -252,11 +252,6 @@ const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connec
 
                     setWebsocketUrl(cleanBaseUrlWithPort);
                 }
-
-                // Give a small delay to see if connect() runs
-                setTimeout(() => {
-                    console.log('✅ connect() call completed (after 1s delay)');
-                }, 1000);
 
             } else {
                 console.error("❌ Invalid response structure:", response);
