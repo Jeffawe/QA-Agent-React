@@ -16,20 +16,28 @@ const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connec
     const [isExpanded, setIsExpanded] = useState(false);
     const [, setIsLoading] = useState(false);
     const [stopping, setStopping] = useState(false);
+    const [reconnectAttempts, setReconnectAttempts] = useState(0);
+    const [isReconnecting, setIsReconnecting] = useState(false);
+    const [connectionStatus, setConnectionStatus] = useState<'disconnected' | 'connecting' | 'connected' | 'error' | 'reconnecting'>('disconnected');
 
+    const MAX_RECONNECT_ATTEMPTS = 5;
+    const RECONNECT_DELAY = 3000; // 3 seconds
 
     const stopAnalysis = useCallback(async () => {
         try {
             setStopping(true);
+            setConnectionStatus('disconnected');
             try {
                 await axios.get(`${baseUrl}/stop/${sessionId}`, {
-                    timeout: 100000, // 5 seconds
+                    timeout: 100000,
                 });
             } catch (error) {
                 console.error('Error stopping analysis:', error);
             }
             disconnect();
             setIsAnalyzing(false);
+            setReconnectAttempts(0);
+            setIsReconnecting(false);
         } catch (error) {
             console.error('Error stopping analysis:', error);
         } finally {
@@ -37,25 +45,120 @@ const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connec
         }
     }, [disconnect, sessionId]);
 
+    const checkSessionStatus = useCallback(async (sessionId: string): Promise<boolean> => {
+        try {
+            const response = await axios.get(`${baseUrl}/status/${sessionId}`, { timeout: 5000 });
+            return response.data.active === true;
+        } catch (error) {
+            console.error('Error checking session status:', error);
+            return false;
+        }
+    }, []);
+
+    const attemptReconnection = useCallback(async () => {
+        if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+            console.log('Max reconnection attempts reached. Stopping analysis.');
+            await stopAnalysis();
+            return;
+        }
+
+        setIsReconnecting(true);
+        setConnectionStatus('reconnecting');
+        setReconnectAttempts(prev => prev + 1);
+
+        console.log(`🔄 Reconnection attempt ${reconnectAttempts + 1}/${MAX_RECONNECT_ATTEMPTS}`);
+
+        try {
+            // First, check if the session is still active
+            const isSessionActive = await checkSessionStatus(sessionId);
+            
+            if (!isSessionActive) {
+                console.log('Session is no longer active. Stopping analysis.');
+                await stopAnalysis();
+                return;
+            }
+
+            // Try to get fresh WebSocket port
+            const response = await axios.get(`${baseUrl}/websocket-port/${sessionId}`, { timeout: 10000 });
+            
+            if (response.data && response.data.websocketPort) {
+                const url = new URL(baseUrl);
+                const wsProtocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
+                const newWebsocketUrl = `${wsProtocol}//${url.hostname}:${response.data.websocketPort}`;
+                
+                setWebsocketUrl(newWebsocketUrl);
+                setConnectionStatus('connecting');
+                
+                // Attempt to connect
+                connect(newWebsocketUrl);
+                
+                // Reset reconnect attempts on successful connection setup
+                setTimeout(() => {
+                    if (connected) {
+                        setReconnectAttempts(0);
+                        setIsReconnecting(false);
+                        setConnectionStatus('connected');
+                    }
+                }, 2000);
+            } else {
+                throw new Error('No WebSocket port received');
+            }
+        } catch (error) {
+            console.error(`Reconnection attempt ${reconnectAttempts + 1} failed:`, error);
+            
+            // Schedule next reconnection attempt
+            setTimeout(() => {
+                attemptReconnection();
+            }, RECONNECT_DELAY);
+        }
+    }, [reconnectAttempts, sessionId, connect, connected, stopAnalysis, checkSessionStatus]);
+
     useEffect(() => {
-        if (websocketUrl && isAnalyzing) {
+        if (websocketUrl && isAnalyzing && !isReconnecting) {
             console.log('🔌 Establishing WebSocket connection...');
+            setConnectionStatus('connecting');
             connect(websocketUrl);
+
+            // Set up connection timeout
+            const connectionTimeout = setTimeout(() => {
+                if (!connected && isAnalyzing) {
+                    console.log('WebSocket connection timeout. Attempting reconnection...');
+                    setConnectionStatus('error');
+                    attemptReconnection();
+                }
+            }, 10000); // 10 second timeout
 
             // Cleanup function
             return () => {
-                console.log('🔌 Cleaning up WebSocket connection...');
-                stopAnalysis();
+                clearTimeout(connectionTimeout);
+                if (!isReconnecting) {
+                    console.log('🔌 Cleaning up WebSocket connection...');
+                }
             };
         }
-    }, [websocketUrl, isAnalyzing, connect, stopAnalysis]);
+    }, [websocketUrl, isAnalyzing, connect, connected, isReconnecting, attemptReconnection]);
 
+    // Monitor connection status
+    useEffect(() => {
+        if (connected && isAnalyzing) {
+            setConnectionStatus('connected');
+            setReconnectAttempts(0);
+            setIsReconnecting(false);
+        } else if (isAnalyzing && !connected && !isReconnecting && websocketUrl) {
+            // Connection lost during analysis
+            console.log('Connection lost. Attempting reconnection...');
+            setConnectionStatus('error');
+            attemptReconnection();
+        }
+    }, [connected, isAnalyzing, isReconnecting, websocketUrl, attemptReconnection]);
 
     const startWebAnalysis = async () => {
         try {
             console.log("🚀 Starting web analysis...");
 
             setIsLoading(true);
+            setConnectionStatus('connecting');
+            
             if (!websiteUrl.trim()) {
                 alert('Please enter a website URL');
                 return;
@@ -64,7 +167,9 @@ const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connec
                 alert('Please enter your API key');
                 return;
             }
+            
             setIsAnalyzing(true);
+            setReconnectAttempts(0);
 
             let sessionId = '';
 
@@ -99,13 +204,15 @@ const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connec
             // Clear the API key from memory immediately
             setApiKey('');
 
+            // Increase timeout for initial connection
             const response = await axios.post(`${baseUrl}/${endPoint}`, {
                 goal: goal,
                 url: websiteUrl
             }, {
                 headers: {
                     'Content-Type': 'application/json'
-                }
+                },
+                timeout: 60000 // 60 seconds for initial setup
             });
 
             if (response && response.data) {
@@ -116,18 +223,35 @@ const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connec
 
                 if (!freshWebsocketPort) {
                     console.error("❌ No websocketport in response!");
-                    alert("❌ No websocket port received from server");
-                    return;
+                    
+                    // If no websocket port, try to get it via status endpoint
+                    console.log("🔄 Trying to get websocket port from status endpoint...");
+                    try {
+                        const statusResponse = await axios.get(`${baseUrl}/websocket-port/${freshSessionId}`, { timeout: 30000 });
+                        if (statusResponse.data && statusResponse.data.websocketPort) {
+                            const url = new URL(baseUrl);
+                            const wsProtocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
+                            const cleanBaseUrlWithPort = `${wsProtocol}//${url.hostname}:${statusResponse.data.websocketPort}`;
+                            setWebsocketUrl(cleanBaseUrlWithPort);
+                        } else {
+                            throw new Error('No WebSocket port available');
+                        }
+                    } catch (statusError) {
+                        console.error("❌ Failed to get websocket port from status:", statusError);
+                        alert("❌ Failed to establish connection. The session may still be initializing. Please try reconnecting in a moment.");
+                        setConnectionStatus('error');
+                        return;
+                    }
+                } else {
+                    setSessionId(freshSessionId);
+
+                    const url = new URL(baseUrl);
+                    // Map HTTP/HTTPS to WS/WSS
+                    const wsProtocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
+                    const cleanBaseUrlWithPort = `${wsProtocol}//${url.hostname}:${freshWebsocketPort}`;
+
+                    setWebsocketUrl(cleanBaseUrlWithPort);
                 }
-
-                setSessionId(freshSessionId);
-
-                const url = new URL(baseUrl);
-                // Map HTTP/HTTPS to WS/WSS
-                const wsProtocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
-                const cleanBaseUrlWithPort = `${wsProtocol}//${url.hostname}:${freshWebsocketPort}`;
-
-                setWebsocketUrl(cleanBaseUrlWithPort);
 
                 // Give a small delay to see if connect() runs
                 setTimeout(() => {
@@ -143,12 +267,19 @@ const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connec
             setIsLoading(false);
 
         } catch (error: unknown) {
-            const err = error as { response?: { data?: unknown }; message?: string };
-            const errorMessage = err.response?.data || err.message || String(error);
+            const err = error as { response?: { data?: string }; message?: string };
+            const errorMessage: string = err.response?.data || err.message || String(error);
             console.error('❌ Error starting session:', errorMessage);
-            alert(`❌ Error starting session: ${errorMessage}`);
+            
+            if (errorMessage.includes('timeout')) {
+                alert(`⏱️ Initial connection timed out. The session may still be initializing in the background. You can try to reconnect in a moment.`);
+                setConnectionStatus('error');
+                // Don't stop analysis here - let user decide to reconnect or stop
+            } else {
+                alert(`❌ Error starting session: ${errorMessage}`);
+                stopAnalysis();
+            }
             setIsLoading(false);
-            stopAnalysis()
         }
     };
 
@@ -166,6 +297,26 @@ const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connec
             throw error;
         }
     }
+
+    const getConnectionStatusColor = () => {
+        switch (connectionStatus) {
+            case 'connected': return 'bg-green-500';
+            case 'connecting': return 'bg-yellow-500';
+            case 'reconnecting': return 'bg-blue-500';
+            case 'error': return 'bg-red-500';
+            default: return 'bg-gray-500';
+        }
+    };
+
+    const getConnectionStatusText = () => {
+        switch (connectionStatus) {
+            case 'connected': return 'Connected to Web Service';
+            case 'connecting': return 'Connecting...';
+            case 'reconnecting': return `Reconnecting... (${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})`;
+            case 'error': return 'Connection Error - Click Reconnect';
+            default: return 'Disconnected';
+        }
+    };
 
     return (
         <div className="space-y-6">
@@ -270,6 +421,16 @@ const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connec
                             )}
                         </button>
 
+                        {connectionStatus === 'error' && isAnalyzing && (
+                            <button
+                                onClick={attemptReconnection}
+                                disabled={isReconnecting}
+                                className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-all duration-200"
+                            >
+                                {isReconnecting ? 'Reconnecting...' : 'Try Reconnect'}
+                            </button>
+                        )}
+
                         {(connected || isAnalyzing) && (
                             <button
                                 onClick={stopAnalysis}
@@ -285,9 +446,8 @@ const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connec
 
             {/* Status */}
             {(connected || isAnalyzing) && (
-                <div className={`px-4 py-2 rounded-full text-white text-center font-semibold ${connected ? 'bg-green-500' : 'bg-yellow-500'
-                    }`}>
-                    {isAnalyzing ? 'Analysis in Progress...' : connected ? 'Connected to Web Service' : 'Connecting...'}
+                <div className={`px-4 py-2 rounded-full text-white text-center font-semibold ${getConnectionStatusColor()}`}>
+                    {getConnectionStatusText()}
                 </div>
             )}
 

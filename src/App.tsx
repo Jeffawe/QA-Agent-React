@@ -6,6 +6,7 @@ import { Analytics } from "@vercel/analytics/react";
 import TestingPage from './pages/docs/content/TestingPage';
 import TestingGuide from './pages/TestingGuide';
 import DocsPage from './pages/docs/DocsPage';
+import AdminHealthDashboard from './pages/HealthTab';
 
 
 const App: React.FC = () => {
@@ -44,10 +45,12 @@ const App: React.FC = () => {
         <main className="">
           <Routes>
             <Route path="/" element={<LandingPage />} />
-            <Route path="/Docs" element={<DocsPage />} />
             <Route path="/testing" element={<TestingPage />} />
             <Route path="/updates" element={<UpdatesPage />} />
             <Route path="/test" element={<TestingGuide />} />
+            <Route path="/docs" element={<DocsPage />} />
+            <Route path="/docs/*" element={<DocsPage />} />
+            <Route path="/health" element={<AdminHealthDashboard />} />
             {/* Add more routes as needed */}
           </Routes>
         </main>
