@@ -25,7 +25,7 @@ const message = `QA Agent is currently in beta. Please note:
 // Main Updates Page Component with Tabs
 const UpdatesPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState('web');
-  const [websocketport, setwebsocketPort] = useState('3002');
+  const [port, setPort] = useState('3001');
   const [connected, setConnected] = useState(false);
   const [updates, setUpdates] = useState<PageDetails[]>([]);
   const [logs, setLogs] = useState<string[]>([]);
@@ -234,8 +234,8 @@ const UpdatesPage: React.FC = () => {
               logs={logs}
               connect={connect}
               disconnect={disconnect}
-              setwebsocketPort={setwebsocketPort}
-              websocketport={websocketport}
+              setwebsocketPort={setPort}
+              port={port}
               updates={updates}
               connected={connected}
               connectedLoading={connectedLoading}

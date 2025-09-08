@@ -3,10 +3,19 @@ import type { TabProps } from '../../types';
 
 
 // Local Tab Component (your current implementation)
-const LocalTab: React.FC<TabProps> = ({ logs, connect, disconnect, setwebsocketPort, 
-  websocketport, updates, connected, connectedLoading, stopServerloading }) => {
+const LocalTab: React.FC<TabProps> = ({ logs, connect, disconnect, setwebsocketPort,
+  port, updates, connected, connectedLoading, stopServerloading }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showLogs, setShowLogs] = useState(true);
+
+  const connectToWebSocket = () => {
+    const baseUrl = `http://localhost:${port}`;
+    const url = new URL(baseUrl);
+    const wsProtocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
+    // Include the port in the WebSocket URL
+    const cleanBaseUrlWithPort = `${wsProtocol}//${url.hostname}:${url.port}/websocket?sessionId=1`;
+    connect(cleanBaseUrlWithPort);
+  };
 
   return (
     <div className="space-y-6">
@@ -31,7 +40,7 @@ const LocalTab: React.FC<TabProps> = ({ logs, connect, disconnect, setwebsocketP
                   <h4 className="font-semibold text-blue-900 mb-2">Setup Instructions:</h4>
                   <ol className="text-sm text-blue-800 space-y-1">
                     <li>1. Make sure you have the QA Agent running locally via npm package</li>
-                    <li>2. Enter the WebSocket port (typically 3002 for monitoring)</li>
+                    <li>2. Enter the port (typically 3001)</li>
                     <li>3. Press "Connect" to establish connection</li>
                     <li>4. Monitor real-time logs and analysis data</li>
                   </ol>
@@ -60,10 +69,10 @@ const LocalTab: React.FC<TabProps> = ({ logs, connect, disconnect, setwebsocketP
 
         <div className="flex flex-col sm:flex-row sm:items-end space-y-4 sm:space-y-0 sm:space-x-4">
           <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-700 mb-2">WebSocket Port</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Port</label>
             <input
-              placeholder="Port (default 3002)"
-              value={websocketport}
+              placeholder="Port (default 3001)"
+              value={port}
               onChange={e => setwebsocketPort && setwebsocketPort(e.target.value)}
               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
             />
@@ -71,7 +80,7 @@ const LocalTab: React.FC<TabProps> = ({ logs, connect, disconnect, setwebsocketP
 
           <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
             <button
-              onClick={() => connect(`ws://localhost:${websocketport}`)}
+              onClick={() => connectToWebSocket()}
               className={`px-4 sm:px-6 py-3 rounded-lg font-medium transition-all duration-200 text-sm sm:text-base ${connected
                 ? 'bg-green-600 hover:bg-green-700 text-white'
                 : 'bg-blue-600 hover:bg-blue-700 text-white'

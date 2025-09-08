@@ -21,7 +21,7 @@ export interface TabProps {
   connect: (socketLocalPort: string) => void;
   disconnect: () => void;
   setwebsocketPort?: React.Dispatch<React.SetStateAction<string>>;
-  websocketport?: string;
+  port?: string;
   updates: PageDetails[];
   connected: boolean;
   connectedLoading?: boolean;
