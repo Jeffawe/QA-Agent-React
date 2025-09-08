@@ -4,7 +4,6 @@ import axios from 'axios';
 
 const baseUrl = import.meta.env.VITE_API_URL;
 const testKey = import.meta.env.VITE_TEST_KEY;
-const websocketPort = 8080;
 
 const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connected }) => {
     const [websiteUrl, setWebsiteUrl] = useState('');
@@ -79,31 +78,24 @@ const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connec
                 return;
             }
 
-            // Try to get fresh WebSocket port
-            const response = await axios.get(`${baseUrl}/websocket-port/${sessionId}`, { timeout: 10000 });
+            const url = new URL(baseUrl);
+            const wsProtocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
+            const cleanBaseUrlWithPort = `${wsProtocol}//${url.hostname}/websocket?sessionId=${sessionId}`;
+            setWebsocketUrl(cleanBaseUrlWithPort);
 
-            if (response.data && response.data.websocketPort) {
-                const url = new URL(baseUrl);
-                const wsProtocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
-                const newWebsocketUrl = `${wsProtocol}//${url.hostname}:${response.data.websocketPort}`;
+            setConnectionStatus('connecting');
 
-                setWebsocketUrl(newWebsocketUrl);
-                setConnectionStatus('connecting');
+            // Attempt to connect
+            connect(cleanBaseUrlWithPort);
 
-                // Attempt to connect
-                connect(newWebsocketUrl);
-
-                // Reset reconnect attempts on successful connection setup
-                setTimeout(() => {
-                    if (connected) {
-                        setReconnectAttempts(0);
-                        setIsReconnecting(false);
-                        setConnectionStatus('connected');
-                    }
-                }, 2000);
-            } else {
-                throw new Error('No WebSocket port received');
-            }
+            // Reset reconnect attempts on successful connection setup
+            setTimeout(() => {
+                if (connected) {
+                    setReconnectAttempts(0);
+                    setIsReconnecting(false);
+                    setConnectionStatus('connected');
+                }
+            }, 2000);
         } catch (error) {
             console.error(`Reconnection attempt ${reconnectAttempts + 1} failed:`, error);
 
@@ -218,28 +210,13 @@ const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connec
 
             if (response && response.data) {
                 // Get the fresh websocket port from response
-                const freshWebsocketPort = response.data.websocketport;
                 const freshSessionId = response.data.sessionId;
                 console.log("🔍 websocketport exists?", 'websocketport' in response.data);
-
-                if (!freshWebsocketPort) {
-                    console.error("❌ No websocketport in response!");
-
-                    // If no websocket port, try to get it via status endpoint
-                    const url = new URL(baseUrl);
-                    const wsProtocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
-                    const cleanBaseUrlWithPort = `${wsProtocol}//${url.hostname}:${websocketPort}?sessionId=${sessionId}`;
-                    setWebsocketUrl(cleanBaseUrlWithPort);
-                } else {
-                    setSessionId(freshSessionId);
-
-                    const url = new URL(baseUrl);
-                    // Map HTTP/HTTPS to WS/WSS
-                    const wsProtocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
-                    const cleanBaseUrlWithPort = `${wsProtocol}//${url.hostname}:${websocketPort}`;
-
-                    setWebsocketUrl(cleanBaseUrlWithPort);
-                }
+                setSessionId(freshSessionId);
+                const url = new URL(baseUrl);
+                const wsProtocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
+                const cleanBaseUrlWithPort = `${wsProtocol}//${url.hostname}/websocket?sessionId=${sessionId}`;
+                setWebsocketUrl(cleanBaseUrlWithPort);
 
             } else {
                 console.error("❌ Invalid response structure:", response);
