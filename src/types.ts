@@ -46,3 +46,28 @@ export interface Analysis {
     ui_issues: UIIssue[];
     notes: string;
 }
+
+export interface WebSocketData {
+    message?: string;
+    timestamp: number;
+    page?: PageDetails;
+}
+
+export interface ConnectionData {
+    status: string;
+    message: string;
+}
+
+export interface FirstConnectionData {
+    pages: PageDetails[];
+    messages: string[];
+    timestamp: number;
+}
+
+// Enhanced message structure with sessionId
+export interface RedisMessage {
+    type: string;
+    sessionId: string;
+    data: WebSocketData | ConnectionData | FirstConnectionData;
+    timestamp: string;
+}

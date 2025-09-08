@@ -4,6 +4,7 @@ import axios from 'axios';
 
 const baseUrl = import.meta.env.VITE_API_URL;
 const testKey = import.meta.env.VITE_TEST_KEY;
+const websocketPort = 8080;
 
 const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connected }) => {
     const [websiteUrl, setWebsiteUrl] = useState('');
@@ -71,7 +72,7 @@ const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connec
         try {
             // First, check if the session is still active
             const isSessionActive = await checkSessionStatus(sessionId);
-            
+
             if (!isSessionActive) {
                 console.log('Session is no longer active. Stopping analysis.');
                 await stopAnalysis();
@@ -80,18 +81,18 @@ const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connec
 
             // Try to get fresh WebSocket port
             const response = await axios.get(`${baseUrl}/websocket-port/${sessionId}`, { timeout: 10000 });
-            
+
             if (response.data && response.data.websocketPort) {
                 const url = new URL(baseUrl);
                 const wsProtocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
                 const newWebsocketUrl = `${wsProtocol}//${url.hostname}:${response.data.websocketPort}`;
-                
+
                 setWebsocketUrl(newWebsocketUrl);
                 setConnectionStatus('connecting');
-                
+
                 // Attempt to connect
                 connect(newWebsocketUrl);
-                
+
                 // Reset reconnect attempts on successful connection setup
                 setTimeout(() => {
                     if (connected) {
@@ -105,7 +106,7 @@ const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connec
             }
         } catch (error) {
             console.error(`Reconnection attempt ${reconnectAttempts + 1} failed:`, error);
-            
+
             // Schedule next reconnection attempt
             setTimeout(() => {
                 attemptReconnection();
@@ -158,7 +159,7 @@ const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connec
 
             setIsLoading(true);
             setConnectionStatus('connecting');
-            
+
             if (!websiteUrl.trim()) {
                 alert('Please enter a website URL');
                 return;
@@ -167,7 +168,7 @@ const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connec
                 alert('Please enter your API key');
                 return;
             }
-            
+
             setIsAnalyzing(true);
             setReconnectAttempts(0);
 
@@ -223,32 +224,19 @@ const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connec
 
                 if (!freshWebsocketPort) {
                     console.error("❌ No websocketport in response!");
-                    
+
                     // If no websocket port, try to get it via status endpoint
-                    console.log("🔄 Trying to get websocket port from status endpoint...");
-                    try {
-                        const statusResponse = await axios.get(`${baseUrl}/websocket-port/${freshSessionId}`, { timeout: 30000 });
-                        if (statusResponse.data && statusResponse.data.websocketPort) {
-                            const url = new URL(baseUrl);
-                            const wsProtocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
-                            const cleanBaseUrlWithPort = `${wsProtocol}//${url.hostname}:${statusResponse.data.websocketPort}`;
-                            setWebsocketUrl(cleanBaseUrlWithPort);
-                        } else {
-                            throw new Error('No WebSocket port available');
-                        }
-                    } catch (statusError) {
-                        console.error("❌ Failed to get websocket port from status:", statusError);
-                        alert("❌ Failed to establish connection. The session may still be initializing. Please try reconnecting in a moment.");
-                        setConnectionStatus('error');
-                        return;
-                    }
+                    const url = new URL(baseUrl);
+                    const wsProtocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
+                    const cleanBaseUrlWithPort = `${wsProtocol}//${url.hostname}:${websocketPort}?sessionId=${sessionId}`;
+                    setWebsocketUrl(cleanBaseUrlWithPort);
                 } else {
                     setSessionId(freshSessionId);
 
                     const url = new URL(baseUrl);
                     // Map HTTP/HTTPS to WS/WSS
                     const wsProtocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
-                    const cleanBaseUrlWithPort = `${wsProtocol}//${url.hostname}:${freshWebsocketPort}`;
+                    const cleanBaseUrlWithPort = `${wsProtocol}//${url.hostname}:${websocketPort}`;
 
                     setWebsocketUrl(cleanBaseUrlWithPort);
                 }
@@ -265,7 +253,7 @@ const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connec
             const err = error as { response?: { data?: string }; message?: string };
             const errorMessage: string = err.response?.data || err.message || String(error);
             console.error('❌ Error starting session:', errorMessage);
-            
+
             if (errorMessage.includes('timeout')) {
                 alert(`⏱️ Initial connection timed out. The session may still be initializing in the background. You can try to reconnect in a moment.`);
                 setConnectionStatus('error');
