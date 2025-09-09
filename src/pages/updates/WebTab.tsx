@@ -1,7 +1,6 @@
 import type { TabProps } from "../../types";
 import React, { useCallback, useEffect, useState } from 'react';
 import axios from 'axios';
-import { clearTimeout } from "timers";
 
 const baseUrl = import.meta.env.VITE_API_URL;
 const testKey = import.meta.env.VITE_TEST_KEY;
