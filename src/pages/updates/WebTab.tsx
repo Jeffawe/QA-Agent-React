@@ -136,6 +136,10 @@ const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connec
                     console.log('WebSocket connection timeout. Attempting reconnection...');
                     setConnectionStatus('error');
                     attemptReconnection();
+                } else if (connected && isAnalyzing) {
+                    setConnectionStatus('connected');
+                    setReconnectAttempts(0);
+                    setIsReconnecting(false);
                 }
             }, 20000); // 20 second timeout
 
@@ -148,20 +152,6 @@ const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connec
             };
         }
     }, [websocketUrl, isAnalyzing, connect, connected, isReconnecting, attemptReconnection]);
-
-    // Monitor connection status
-    useEffect(() => {
-        if (connected && isAnalyzing) {
-            setConnectionStatus('connected');
-            setReconnectAttempts(0);
-            setIsReconnecting(false);
-        } else if (isAnalyzing && !connected && connectionStatus !== 'reconnecting' && connectionStatus !== 'connecting' && !isReconnecting && websocketUrl && reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
-            // Connection lost during analysis - only attempt reconnection if we haven't exceeded the limit
-            console.log('Connection lost. Attempting reconnection...');
-            setConnectionStatus('error');
-            attemptReconnection();
-        }
-    }, [connected, isAnalyzing, isReconnecting, websocketUrl, reconnectAttempts, attemptReconnection, connectionStatus]);
 
     const startWebAnalysis = async () => {
         try {
