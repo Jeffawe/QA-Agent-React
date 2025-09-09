@@ -1,5 +1,5 @@
 import type { TabProps } from "../../types";
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 
 const baseUrl = import.meta.env.VITE_API_URL;
@@ -19,9 +19,15 @@ const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connec
     const [reconnectAttempts, setReconnectAttempts] = useState(0);
     const [isReconnecting, setIsReconnecting] = useState(false);
     const [connectionStatus, setConnectionStatus] = useState<'disconnected' | 'connecting' | 'connected' | 'error' | 'reconnecting'>('disconnected');
+    const connectedRef = useRef(connected);
 
     const MAX_RECONNECT_ATTEMPTS = 3;
     const RECONNECT_DELAY = 3000; // 3 seconds
+
+    const getErrorMessage = (error: unknown): string => {
+        if (axios.isAxiosError(error)) return error.response?.data || error.message;
+        return String(error);
+    }
 
     const stopAnalysis = useCallback(async () => {
         try {
@@ -89,7 +95,9 @@ const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connec
                     const url = new URL(baseUrl);
                     const wsProtocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
                     const cleanBaseUrlWithPort = `${wsProtocol}//${url.hostname}/websocket?sessionId=${sessionId}`;
-                    setWebsocketUrl(cleanBaseUrlWithPort);
+                    if (websocketUrl !== cleanBaseUrlWithPort) {
+                        setWebsocketUrl(cleanBaseUrlWithPort);
+                    }
 
                     setConnectionStatus('connecting');
 
@@ -121,7 +129,8 @@ const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connec
 
             return nextAttempts;
         });
-    }, [sessionId, connect, connected, stopAnalysis, checkSessionStatus]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [sessionId, stopAnalysis, checkSessionStatus]);
 
     // Connect to WebSocket
     useEffect(() => {
@@ -132,11 +141,11 @@ const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connec
 
             // Set up connection timeout
             const connectionTimeout = setTimeout(() => {
-                if (!connected && isAnalyzing) {
+                if (!connectedRef.current && isAnalyzing) {
                     console.log('WebSocket connection timeout. Attempting reconnection...');
                     setConnectionStatus('error');
                     attemptReconnection();
-                } else if (connected && isAnalyzing) {
+                } else if (connectedRef.current && isAnalyzing) {
                     setConnectionStatus('connected');
                     setReconnectAttempts(0);
                     setIsReconnecting(false);
@@ -151,7 +160,12 @@ const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connec
                 }
             };
         }
-    }, [websocketUrl, isAnalyzing, connect, connected, isReconnecting, attemptReconnection]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [websocketUrl, isAnalyzing, isReconnecting, attemptReconnection]);
+
+    useEffect(() => {
+        connectedRef.current = connected;
+    }, [connected]);
 
     const startWebAnalysis = async () => {
         try {
@@ -235,8 +249,7 @@ const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connec
             setIsLoading(false);
 
         } catch (error: unknown) {
-            const err = error as { response?: { data?: string }; message?: string };
-            const errorMessage: string = err.response?.data || err.message || String(error);
+            const errorMessage = getErrorMessage(error);
             console.error('❌ Error starting session:', errorMessage);
 
             if (errorMessage.includes('timeout')) {
@@ -256,12 +269,8 @@ const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connec
             const response = await axios.get(`${baseUrl}/start`);
             return response.data;
         } catch (error: unknown) {
-            if (typeof error === 'object' && error !== null) {
-                const err = error as { response?: { data?: unknown }, message?: string };
-                console.error('❌ Error getting start data:', err.response?.data || err.message);
-            } else {
-                console.error('❌ Error getting start data:', String(error));
-            }
+            const errorMessage = getErrorMessage(error);
+            console.error('❌ Error getting session ID:', errorMessage);
             throw error;
         }
     }
