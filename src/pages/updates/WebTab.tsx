@@ -22,7 +22,6 @@ const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connec
     const connectedRef = useRef(connected);
 
     const MAX_RECONNECT_ATTEMPTS = 3;
-    const RECONNECT_DELAY = 3000; // 3 seconds
 
     const getErrorMessage = (error: unknown): string => {
         if (axios.isAxiosError(error)) return error.response?.data || error.message;
@@ -114,16 +113,9 @@ const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connec
                     }, 2000);
                 } catch (error) {
                     console.error(`Reconnection attempt ${nextAttempts} failed:`, error);
-
-                    // Schedule next reconnection attempt only if we haven't exceeded the limit
-                    if (nextAttempts < MAX_RECONNECT_ATTEMPTS) {
-                        setTimeout(() => {
-                            attemptReconnection();
-                        }, RECONNECT_DELAY);
-                    } else {
-                        console.log('Max reconnection attempts reached after error. Stopping analysis.');
-                        stopAnalysis();
-                    }
+                    alert(`Reconnection attempt ${nextAttempts} failed. Please check if the port (for server and websocket) are valid.`);
+                } finally {
+                    setIsReconnecting(false);
                 }
             }, 0);
 
@@ -144,11 +136,10 @@ const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connec
                 if (!connectedRef.current && isAnalyzing) {
                     console.log('WebSocket connection timeout. Attempting reconnection...');
                     setConnectionStatus('error');
-                    attemptReconnection();
+                    // attemptReconnection();
                 } else if (connectedRef.current && isAnalyzing) {
                     setConnectionStatus('connected');
                     setReconnectAttempts(0);
-                    setIsReconnecting(false);
                 }
             }, 20000); // 20 second timeout
 
@@ -161,7 +152,7 @@ const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connec
             };
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [websocketUrl, isAnalyzing, isReconnecting, attemptReconnection]);
+    }, [websocketUrl]);
 
     useEffect(() => {
         connectedRef.current = connected;
