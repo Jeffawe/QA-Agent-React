@@ -1,6 +1,7 @@
 import type { TabProps } from "../../types";
 import React, { useCallback, useEffect, useState } from 'react';
 import axios from 'axios';
+import { clearTimeout } from "timers";
 
 const baseUrl = import.meta.env.VITE_API_URL;
 const testKey = import.meta.env.VITE_TEST_KEY;
@@ -56,56 +57,74 @@ const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connec
     }, []);
 
     const attemptReconnection = useCallback(async () => {
-        if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
-            console.log('Max reconnection attempts reached. Stopping analysis.');
-            await stopAnalysis();
-            return;
-        }
+        // Use the functional update to get the current value and check the limit
+        setReconnectAttempts(currentAttempts => {
+            const nextAttempts = currentAttempts + 1;
 
-        setIsReconnecting(true);
-        setConnectionStatus('reconnecting');
-        setReconnectAttempts(prev => prev + 1);
-
-        console.log(`🔄 Reconnection attempt ${reconnectAttempts + 1}/${MAX_RECONNECT_ATTEMPTS}`);
-
-        try {
-            // First, check if the session is still active
-            const isSessionActive = await checkSessionStatus(sessionId);
-
-            if (!isSessionActive) {
-                console.log('Session is no longer active. Stopping analysis.');
-                await stopAnalysis();
-                return;
+            if (nextAttempts > MAX_RECONNECT_ATTEMPTS) {
+                console.log('Max reconnection attempts reached. Stopping analysis.');
+                // Use setTimeout to avoid state update during render
+                setTimeout(() => {
+                    stopAnalysis();
+                }, 0);
+                return currentAttempts; // Don't increment further
             }
 
-            const url = new URL(baseUrl);
-            const wsProtocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
-            const cleanBaseUrlWithPort = `${wsProtocol}//${url.hostname}/websocket?sessionId=${sessionId}`;
-            setWebsocketUrl(cleanBaseUrlWithPort);
+            setIsReconnecting(true);
+            setConnectionStatus('reconnecting');
 
-            setConnectionStatus('connecting');
+            console.log(`🔄 Reconnection attempt ${nextAttempts}/${MAX_RECONNECT_ATTEMPTS}`);
 
-            // Attempt to connect
-            connect(cleanBaseUrlWithPort);
+            // Use setTimeout to handle the async reconnection logic
+            setTimeout(async () => {
+                try {
+                    // First, check if the session is still active
+                    const isSessionActive = await checkSessionStatus(sessionId);
 
-            // Reset reconnect attempts on successful connection setup
-            setTimeout(() => {
-                if (connected) {
-                    setReconnectAttempts(0);
-                    setIsReconnecting(false);
-                    setConnectionStatus('connected');
+                    if (!isSessionActive) {
+                        console.log('Session is no longer active. Stopping analysis.');
+                        await stopAnalysis();
+                        return;
+                    }
+
+                    const url = new URL(baseUrl);
+                    const wsProtocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
+                    const cleanBaseUrlWithPort = `${wsProtocol}//${url.hostname}/websocket?sessionId=${sessionId}`;
+                    setWebsocketUrl(cleanBaseUrlWithPort);
+
+                    setConnectionStatus('connecting');
+
+                    // Attempt to connect
+                    connect(cleanBaseUrlWithPort);
+
+                    // Reset reconnect attempts on successful connection setup
+                    setTimeout(() => {
+                        if (connected) {
+                            setReconnectAttempts(0);
+                            setIsReconnecting(false);
+                            setConnectionStatus('connected');
+                        }
+                    }, 2000);
+                } catch (error) {
+                    console.error(`Reconnection attempt ${nextAttempts} failed:`, error);
+
+                    // Schedule next reconnection attempt only if we haven't exceeded the limit
+                    if (nextAttempts < MAX_RECONNECT_ATTEMPTS) {
+                        setTimeout(() => {
+                            attemptReconnection();
+                        }, RECONNECT_DELAY);
+                    } else {
+                        console.log('Max reconnection attempts reached after error. Stopping analysis.');
+                        stopAnalysis();
+                    }
                 }
-            }, 2000);
-        } catch (error) {
-            console.error(`Reconnection attempt ${reconnectAttempts + 1} failed:`, error);
+            }, 0);
 
-            // Schedule next reconnection attempt
-            setTimeout(() => {
-                attemptReconnection();
-            }, RECONNECT_DELAY);
-        }
-    }, [reconnectAttempts, sessionId, connect, connected, stopAnalysis, checkSessionStatus]);
+            return nextAttempts;
+        });
+    }, [sessionId, connect, connected, stopAnalysis, checkSessionStatus]);
 
+    // Connect to WebSocket
     useEffect(() => {
         if (websocketUrl && isAnalyzing && !isReconnecting) {
             console.log('🔌 Establishing WebSocket connection...');
@@ -119,7 +138,7 @@ const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connec
                     setConnectionStatus('error');
                     attemptReconnection();
                 }
-            }, 10000); // 10 second timeout
+            }, 20000); // 20 second timeout
 
             // Cleanup function
             return () => {
@@ -137,13 +156,13 @@ const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connec
             setConnectionStatus('connected');
             setReconnectAttempts(0);
             setIsReconnecting(false);
-        } else if (isAnalyzing && !connected && !isReconnecting && websocketUrl) {
-            // Connection lost during analysis
+        } else if (isAnalyzing && !connected && connectionStatus !== 'reconnecting' && connectionStatus !== 'connecting' && !isReconnecting && websocketUrl && reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+            // Connection lost during analysis - only attempt reconnection if we haven't exceeded the limit
             console.log('Connection lost. Attempting reconnection...');
             setConnectionStatus('error');
             attemptReconnection();
         }
-    }, [connected, isAnalyzing, isReconnecting, websocketUrl, attemptReconnection]);
+    }, [connected, isAnalyzing, isReconnecting, websocketUrl, reconnectAttempts, attemptReconnection, connectionStatus]);
 
     const startWebAnalysis = async () => {
         try {
@@ -215,7 +234,7 @@ const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connec
                 setSessionId(freshSessionId);
                 const url = new URL(baseUrl);
                 const wsProtocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
-                const cleanBaseUrlWithPort = `${wsProtocol}//${url.hostname}/websocket?sessionId=${sessionId}`;
+                const cleanBaseUrlWithPort = `${wsProtocol}//${url.hostname}/websocket?sessionId=${freshSessionId}`;
                 setWebsocketUrl(cleanBaseUrlWithPort);
 
             } else {
