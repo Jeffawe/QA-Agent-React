@@ -158,6 +158,9 @@ const WebTab: React.FC<TabProps> = ({ logs, connect, disconnect, updates, connec
 
     useEffect(() => {
         connectedRef.current = connected;
+        if (connected) {
+            setConnectionStatus('connected');
+        }
     }, [connected]);
 
     const startWebAnalysis = async () => {

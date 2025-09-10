@@ -94,8 +94,6 @@ const UpdatesPage: React.FC = () => {
         try {
           const message = JSON.parse(event.data);
 
-          console.log('Received WebSocket message:', message);
-
           switch (message.type) {
             case 'CONNECTION':
               alert(`🔗 Connection confirmed: ${message.data.message}`);
