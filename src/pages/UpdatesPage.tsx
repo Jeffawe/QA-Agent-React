@@ -242,7 +242,7 @@ const UpdatesPage: React.FC = () => {
               stopServerloading={stopServerloading}
             />
             : <WebTab logs={logs} connect={connect} disconnect={disconnect}
-              updates={updates} connected={connected} />
+              updates={updates} connected={connected} socketRef={socketRef} />
           }
         </div>
       </div>

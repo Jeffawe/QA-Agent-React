@@ -1,3 +1,5 @@
+import type { RefObject } from "react";
+
 export interface PageDetails {
     title: string;
     url?: string;
@@ -26,6 +28,7 @@ export interface TabProps {
   connected: boolean;
   connectedLoading?: boolean;
   stopServerloading?: boolean;
+  socketRef?: RefObject<WebSocket | null>;
 }
 
 
