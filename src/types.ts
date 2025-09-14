@@ -9,26 +9,51 @@ export interface PageDetails {
     description: string;
     visited: boolean;
     links: LinkInfo[];
+    testResults?: UITesterResult[];
+}
+
+export interface UITesterResult {
+    element: unknown;
+    testType: 'positive' | 'negative';
+    testValue: unknown;
+    success: boolean;
+    error?: string;
+    response?: string;
+}
+
+export interface ElementDetails {
+    tagName: string;
+    inputType?: string;
+    role?: string;
+    disabled?: boolean;
+    required?: boolean;
+    placeholder?: string;
+    value?: string;
+    options?: string[]; // for select elements
+    min?: string;
+    max?: string;
+    pattern?: string;
+    accept?: string; // for file inputs
 }
 
 export interface LinkInfo {
-  text: string;
-  selector: string;
-  href: string;
-  visited: boolean;
+    text: string;
+    selector: string;
+    href: string;
+    visited: boolean;
 }
 
 export interface TabProps {
-  logs: string[];
-  connect: (socketLocalPort: string) => void;
-  disconnect: () => void;
-  setwebsocketPort?: React.Dispatch<React.SetStateAction<string>>;
-  port?: string;
-  updates: PageDetails[];
-  connected: boolean;
-  connectedLoading?: boolean;
-  stopServerloading?: boolean;
-  socketRef?: RefObject<WebSocket | null>;
+    logs: string[];
+    connect: (socketLocalPort: string) => void;
+    disconnect: () => void;
+    setwebsocketPort?: React.Dispatch<React.SetStateAction<string>>;
+    port?: string;
+    updates: PageDetails[];
+    connected: boolean;
+    connectedLoading?: boolean;
+    stopServerloading?: boolean;
+    socketRef?: RefObject<WebSocket | null>;
 }
 
 
