@@ -6,6 +6,12 @@ import PageAnalysisDisplay from "../PageAnalysisDisplay";
 const baseUrl = import.meta.env.VITE_API_URL;
 const testKey = import.meta.env.VITE_TEST_KEY;
 
+interface KeyValuePair {
+  key: string;
+  value: string;
+  id: string;
+}
+
 const WebTab: React.FC<TabProps> = ({
   logs,
   connect,
@@ -29,13 +35,66 @@ const WebTab: React.FC<TabProps> = ({
   const [connectionStatus, setConnectionStatus] = useState<
     "disconnected" | "connecting" | "connected" | "error" | "reconnecting"
   >("disconnected");
+
+  // New state variables
+  const [detailed, setDetailed] = useState(false);
+  const [additionalInfoExpanded, setAdditionalInfoExpanded] = useState(false);
+  const [keyValuePairs, setKeyValuePairs] = useState<KeyValuePair[]>([
+    { key: "", value: "", id: crypto.randomUUID() },
+  ]);
+
   const connectedRef = useRef(connected);
 
   const MAX_RECONNECT_ATTEMPTS = 3;
+  const MAX_KEY_VALUE_PAIRS = 10;
 
   const getErrorMessage = (error: unknown): string => {
     if (axios.isAxiosError(error)) return error.response?.data || error.message;
     return String(error);
+  };
+
+  // Key-Value pair management functions
+  const addKeyValuePair = () => {
+    if (keyValuePairs.length < MAX_KEY_VALUE_PAIRS) {
+      setKeyValuePairs([
+        ...keyValuePairs,
+        { key: "", value: "", id: crypto.randomUUID() },
+      ]);
+    }
+  };
+
+  const removeKeyValuePair = (id: string) => {
+    if (keyValuePairs.length > 1) {
+      setKeyValuePairs(keyValuePairs.filter((pair) => pair.id !== id));
+    }
+  };
+
+  const updateKeyValuePair = (
+    id: string,
+    field: "key" | "value",
+    value: string
+  ) => {
+    setKeyValuePairs(
+      keyValuePairs.map((pair) =>
+        pair.id === id ? { ...pair, [field]: value } : pair
+      )
+    );
+  };
+
+  const getAdditionalData = () => {
+    const data: { [key: string]: string | boolean } = {};
+
+    // Add the detailed flag to the data object
+    data.detailed = detailed;
+
+    // Add user-defined key-value pairs
+    keyValuePairs.forEach((pair) => {
+      if (pair.key.trim() && pair.value.trim()) {
+        data[pair.key.trim()] = pair.value.trim();
+      }
+    });
+
+    return data;
   };
 
   const stopAnalysis = useCallback(async () => {
@@ -243,13 +302,19 @@ const WebTab: React.FC<TabProps> = ({
       // Clear the API key from memory immediately
       setApiKey("");
 
+      // Prepare the request payload with additional data
+      const requestPayload = {
+        goal: goal,
+        url: websiteUrl,
+        data: getAdditionalData(),
+      };
+
+      console.log("📤 Sending request with payload:", requestPayload);
+
       // Increase timeout for initial connection
       const response = await axios.post(
         `${baseUrl}/${endPoint}`,
-        {
-          goal: goal,
-          url: websiteUrl,
-        },
+        requestPayload,
         {
           headers: {
             "Content-Type": "application/json",
@@ -453,6 +518,165 @@ const WebTab: React.FC<TabProps> = ({
               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
               disabled={isAnalyzing}
             />
+          </div>
+
+          {/* Detailed Analysis Switch */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={detailed}
+                    onChange={(e) => setDetailed(e.target.checked)}
+                    disabled={isAnalyzing}
+                    className="sr-only"
+                  />
+                  <div
+                    className={`relative inline-flex items-center h-6 rounded-full w-11 transition-colors duration-200 ease-in-out ${
+                      detailed ? "bg-blue-600" : "bg-gray-300"
+                    } ${
+                      isAnalyzing
+                        ? "opacity-50 cursor-not-allowed"
+                        : "cursor-pointer"
+                    }`}
+                  >
+                    <span
+                      className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform duration-200 ease-in-out ${
+                        detailed ? "translate-x-6" : "translate-x-1"
+                      }`}
+                    />
+                  </div>
+                  <span className="ml-3 text-sm font-medium text-gray-700">
+                    Detailed Analysis
+                  </span>
+                </label>
+              </div>
+            </div>
+            <p className="text-sm text-blue-700 mt-2">
+              Enable detailed analysis to get comprehensive results on every UI
+              element per page.
+              <span className="font-medium">
+                {" "}
+                Note: This will take significantly more time to complete.
+              </span>
+            </p>
+          </div>
+
+          {/* Additional Information Section */}
+          <div className="border border-gray-200 rounded-lg">
+            <button
+              onClick={() => setAdditionalInfoExpanded(!additionalInfoExpanded)}
+              disabled={isAnalyzing}
+              className={`w-full px-4 py-3 text-left flex items-center justify-between hover:bg-gray-50 transition-colors duration-200 rounded-lg ${
+                isAnalyzing ? "opacity-50 cursor-not-allowed" : ""
+              }`}
+            >
+              <div>
+                <h4 className="font-medium text-gray-800">
+                  Additional Information
+                </h4>
+                <p className="text-sm text-gray-600">
+                  Add custom key-value pairs for extra context (optional)
+                </p>
+              </div>
+              <svg
+                className={`w-5 h-5 text-gray-500 transition-transform duration-200 ${
+                  additionalInfoExpanded ? "rotate-180" : ""
+                }`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
+            </button>
+
+            {additionalInfoExpanded && (
+              <div className="px-4 pb-4 border-t border-gray-100">
+                <div className="space-y-3 mt-4">
+                  <div className="flex justify-between items-center">
+                    <p className="text-sm text-gray-600">
+                      Add up to {MAX_KEY_VALUE_PAIRS} custom key-value pairs
+                    </p>
+                    <button
+                      onClick={addKeyValuePair}
+                      disabled={
+                        isAnalyzing ||
+                        keyValuePairs.length >= MAX_KEY_VALUE_PAIRS
+                      }
+                      className={`text-sm px-3 py-1 rounded-md transition-colors duration-200 ${
+                        isAnalyzing ||
+                        keyValuePairs.length >= MAX_KEY_VALUE_PAIRS
+                          ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                          : "bg-blue-100 text-blue-700 hover:bg-blue-200"
+                      }`}
+                    >
+                      Add Pair
+                    </button>
+                  </div>
+
+                  {keyValuePairs.map((pair) => (
+                    <div key={pair.id} className="flex space-x-2 items-center">
+                      <div className="flex-1">
+                        <input
+                          type="text"
+                          placeholder="Key"
+                          value={pair.key}
+                          onChange={(e) =>
+                            updateKeyValuePair(pair.id, "key", e.target.value)
+                          }
+                          disabled={isAnalyzing}
+                          className="w-full p-2 border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <input
+                          type="text"
+                          placeholder="Value"
+                          value={pair.value}
+                          onChange={(e) =>
+                            updateKeyValuePair(pair.id, "value", e.target.value)
+                          }
+                          disabled={isAnalyzing}
+                          className="w-full p-2 border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
+                        />
+                      </div>
+                      {keyValuePairs.length > 1 && (
+                        <button
+                          onClick={() => removeKeyValuePair(pair.id)}
+                          disabled={isAnalyzing}
+                          className={`p-2 rounded-md transition-colors duration-200 ${
+                            isAnalyzing
+                              ? "text-gray-400 cursor-not-allowed"
+                              : "text-red-600 hover:bg-red-50"
+                          }`}
+                        >
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                            />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
