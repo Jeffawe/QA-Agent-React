@@ -241,7 +241,7 @@ const SetupAndUsage = () => {
             <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 border border-gray-200">
                 <h2 className="text-lg sm:text-xl font-semibold mb-3 text-gray-800">Live Updates</h2>
                 <p className="text-gray-600 mb-3 text-sm sm:text-base">
-                    You can view live updates from the model in the <span className="text-blue-600 hover:underline cursor-pointer">Updates</span> page.
+                    You can view live updates from the model in the <span className="text-blue-600 hover:underline cursor-pointer" onClick={() => window.location.href = "/updates#tab=local"}>Updates</span> page.
                 </p>
                 <p className="text-gray-600 mb-3 text-sm sm:text-base">
                     Upon running the code. A new browser window will open (via puppeteer) to view the agent progress. The updates tab simply provide you a textual flow of the agents actions

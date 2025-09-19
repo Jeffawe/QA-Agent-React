@@ -21,7 +21,7 @@ const GettingStarted: React.FC = () => {
                     <div className="flex-1">
                         <h2 className="text-xl font-semibold text-gray-800 mb-3">How QA Agent Works</h2>
                         <p className="text-gray-600 leading-relaxed mb-4">
-                            QA Agent is a powerful automated testing tool built with TypeScript that crawls through your website, 
+                            QA Agent is a powerful automated testing tool built with TypeScript and Playwright that crawls through your website, 
                             analyzes each page, and identifies potential bugs, UI issues, and accessibility problems. It can also 
                             test complex user flows like customer login sequences, checkout processes, and multi-step forms.
                         </p>

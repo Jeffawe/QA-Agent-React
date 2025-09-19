@@ -92,21 +92,11 @@ const WebConfig = () => {
         return JSON.stringify(config, null, 4);
     };
 
-    const downloadConfigFile = () => {
-        const configContent = generateConfigFile();
-        const blob = new Blob([configContent], {
-            type: "application/json",
-        });
+    const useConfigFile = () => {
+        localStorage.setItem("qa-agent-config", generateConfigFile());
 
-        const blobUrl = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = blobUrl;
-        a.download = "qa-agent-config.json";
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(blobUrl);
-    };
+        window.location.href = "/updates";
+    }
 
     const copyToClipboard = (text: string) => {
         navigator.clipboard.writeText(text);
@@ -116,9 +106,17 @@ const WebConfig = () => {
         <div className="space-y-8 sm:space-y-12">
             {/* Header */}
             <div>
-                <h1 className="text-2xl sm:text-4xl font-bold mb-4 text-gray-800">Configuration</h1>
+                <h1 className="text-2xl sm:text-4xl font-bold mb-4 text-gray-800">Web Setup</h1>
                 <p className="text-base sm:text-lg text-gray-600">
                     Customize QA Agent settings and parameters
+                </p>
+            </div>
+
+            {/* Live Updates Section */}
+            <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 border border-gray-200">
+                <h2 className="text-lg sm:text-xl font-semibold mb-3 text-gray-800">Live Updates</h2>
+                <p className="text-gray-600 mb-3 text-sm sm:text-base">
+                    You can use the QA-Agent Web version at <span className="text-blue-600 hover:underline cursor-pointer" onClick={() => window.location.href = "/updates"}>Updates</span> page.
                 </p>
             </div>
 
@@ -223,7 +221,7 @@ const WebConfig = () => {
 
                 <div className="flex flex-col sm:flex-row gap-4">
                     <button
-                        onClick={downloadConfigFile}
+                        onClick={useConfigFile}
                         className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition-colors duration-200 text-sm sm:text-base"
                     >
                         Use Config File
