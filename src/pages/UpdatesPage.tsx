@@ -142,8 +142,6 @@ const UpdatesPage: React.FC = () => {
         socketRef.current = null;
       }
       setConnected(false);
-      setLogs([]);
-      setUpdates([]);
     } catch (error) {
       alert('Problem when stopping the Server. Please check if the port (for server and websocket) are valid.');
       console.error('Error Stopping:', error);
