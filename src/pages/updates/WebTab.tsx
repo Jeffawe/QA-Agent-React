@@ -56,7 +56,7 @@ const WebTab: React.FC<TabProps> = ({
           return error.response.data;
         }
         if (typeof error.response.data === "object") {
-          return JSON.stringify(error.response.data); // 👈 ensures it's a string
+          return JSON.stringify(error.response.data.message ?? error.response.data); // 👈 ensures it's a string
         }
       }
       return error.message;
