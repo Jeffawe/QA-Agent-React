@@ -351,6 +351,7 @@ const WebTab: React.FC<TabProps> = ({
           `⏱️ Initial connection timed out. The session may still be initializing in the background. You can try to reconnect in a moment.`
         );
         setConnectionStatus("error");
+        setIsAnalyzing(false);
         // Don't stop analysis here - let user decide to reconnect or stop
       } else {
         alert(`❌ Error starting session: ${errorMessage}`);
