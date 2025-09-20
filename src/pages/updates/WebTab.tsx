@@ -49,7 +49,18 @@ const WebTab: React.FC<TabProps> = ({
   const MAX_KEY_VALUE_PAIRS = 10;
 
   const getErrorMessage = (error: unknown): string => {
-    if (axios.isAxiosError(error)) return error.response?.data || error.message;
+    if (axios.isAxiosError(error)) {
+      // If backend sent structured JSON
+      if (error.response?.data) {
+        if (typeof error.response.data === "string") {
+          return error.response.data;
+        }
+        if (typeof error.response.data === "object") {
+          return JSON.stringify(error.response.data); // 👈 ensures it's a string
+        }
+      }
+      return error.message;
+    }
     return String(error);
   };
 
@@ -454,9 +465,8 @@ const WebTab: React.FC<TabProps> = ({
             aria-label={isExpanded ? "Hide beta warning" : "Show beta warning"}
           >
             <svg
-              className={`w-5 h-5 text-yellow-600 hover:text-yellow-800 transition-transform duration-200 ${
-                isExpanded ? "rotate-180" : ""
-              }`}
+              className={`w-5 h-5 text-yellow-600 hover:text-yellow-800 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""
+                }`}
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -534,18 +544,15 @@ const WebTab: React.FC<TabProps> = ({
                     className="sr-only"
                   />
                   <div
-                    className={`relative inline-flex items-center h-6 rounded-full w-11 transition-colors duration-200 ease-in-out ${
-                      detailed ? "bg-blue-600" : "bg-gray-300"
-                    } ${
-                      isAnalyzing
+                    className={`relative inline-flex items-center h-6 rounded-full w-11 transition-colors duration-200 ease-in-out ${detailed ? "bg-blue-600" : "bg-gray-300"
+                      } ${isAnalyzing
                         ? "opacity-50 cursor-not-allowed"
                         : "cursor-pointer"
-                    }`}
+                      }`}
                   >
                     <span
-                      className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform duration-200 ease-in-out ${
-                        detailed ? "translate-x-6" : "translate-x-1"
-                      }`}
+                      className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform duration-200 ease-in-out ${detailed ? "translate-x-6" : "translate-x-1"
+                        }`}
                     />
                   </div>
                   <span className="ml-3 text-sm font-medium text-gray-700">
@@ -569,9 +576,8 @@ const WebTab: React.FC<TabProps> = ({
             <button
               onClick={() => setAdditionalInfoExpanded(!additionalInfoExpanded)}
               disabled={isAnalyzing}
-              className={`w-full px-4 py-3 text-left flex items-center justify-between hover:bg-gray-50 transition-colors duration-200 rounded-lg ${
-                isAnalyzing ? "opacity-50 cursor-not-allowed" : ""
-              }`}
+              className={`w-full px-4 py-3 text-left flex items-center justify-between hover:bg-gray-50 transition-colors duration-200 rounded-lg ${isAnalyzing ? "opacity-50 cursor-not-allowed" : ""
+                }`}
             >
               <div>
                 <h4 className="font-medium text-gray-800">
@@ -582,9 +588,8 @@ const WebTab: React.FC<TabProps> = ({
                 </p>
               </div>
               <svg
-                className={`w-5 h-5 text-gray-500 transition-transform duration-200 ${
-                  additionalInfoExpanded ? "rotate-180" : ""
-                }`}
+                className={`w-5 h-5 text-gray-500 transition-transform duration-200 ${additionalInfoExpanded ? "rotate-180" : ""
+                  }`}
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -611,12 +616,11 @@ const WebTab: React.FC<TabProps> = ({
                         isAnalyzing ||
                         keyValuePairs.length >= MAX_KEY_VALUE_PAIRS
                       }
-                      className={`text-sm px-3 py-1 rounded-md transition-colors duration-200 ${
-                        isAnalyzing ||
-                        keyValuePairs.length >= MAX_KEY_VALUE_PAIRS
+                      className={`text-sm px-3 py-1 rounded-md transition-colors duration-200 ${isAnalyzing ||
+                          keyValuePairs.length >= MAX_KEY_VALUE_PAIRS
                           ? "bg-gray-200 text-gray-400 cursor-not-allowed"
                           : "bg-blue-100 text-blue-700 hover:bg-blue-200"
-                      }`}
+                        }`}
                     >
                       Add Pair
                     </button>
@@ -652,11 +656,10 @@ const WebTab: React.FC<TabProps> = ({
                         <button
                           onClick={() => removeKeyValuePair(pair.id)}
                           disabled={isAnalyzing}
-                          className={`p-2 rounded-md transition-colors duration-200 ${
-                            isAnalyzing
+                          className={`p-2 rounded-md transition-colors duration-200 ${isAnalyzing
                               ? "text-gray-400 cursor-not-allowed"
                               : "text-red-600 hover:bg-red-50"
-                          }`}
+                            }`}
                         >
                           <svg
                             className="w-4 h-4"
@@ -683,11 +686,10 @@ const WebTab: React.FC<TabProps> = ({
           <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
             <button
               onClick={startWebAnalysis}
-              className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
-                isAnalyzing
+              className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${isAnalyzing
                   ? "bg-gray-400 cursor-not-allowed text-white"
                   : "bg-purple-600 hover:bg-purple-700 text-white"
-              }`}
+                }`}
               disabled={isAnalyzing}
             >
               {isAnalyzing ? (
