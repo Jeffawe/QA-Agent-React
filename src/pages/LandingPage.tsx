@@ -22,10 +22,6 @@ const LandingPage: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    fetch('https://qa-node-backend.onrender.com/health')
-      .then(() => console.log('Backend is waking up...'))
-      .catch(err => console.error('Wake-up ping failed:', err));
-
     fetch(`${BASE_URL}/health`)
       .then(() => console.log('Backend is waking up...'))
       .catch(err => console.error('Wake-up ping failed:', err));
