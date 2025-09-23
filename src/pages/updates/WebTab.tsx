@@ -123,6 +123,7 @@ const WebTab: React.FC<TabProps> = ({
       setIsAnalyzing(false);
       setReconnectAttempts(0);
       setIsReconnecting(false);
+      setSessionId("");
     } catch (error) {
       console.error("Error stopping analysis:", error);
     } finally {
@@ -146,8 +147,21 @@ const WebTab: React.FC<TabProps> = ({
   );
 
   const attemptReconnection = useCallback(async () => {
-    if (isReconnecting || reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+    if (isReconnecting) {
       console.log("Reconnection already in progress or max attempts reached");
+      return;
+    }
+
+    if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+      console.log("Max reconnection attempts reached");
+      alert("Max reconnection attempts reached. Stopping analysis.");
+      stopAnalysis();
+      return;
+    }
+
+    if (!sessionId) {
+      console.log("No session ID available for reconnection");
+      alert("No session ID available. Cannot reconnect.");
       return;
     }
 
