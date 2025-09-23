@@ -754,8 +754,6 @@ const WebTab: React.FC<TabProps> = ({
               </button>
             )}
 
-            reconnectButton
-
             {(connected || isAnalyzing) && (
               <button
                 onClick={stopAnalysis}
