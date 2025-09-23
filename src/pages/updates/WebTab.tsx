@@ -262,59 +262,81 @@ const WebTab: React.FC<TabProps> = ({
     try {
       console.log("🚀 Starting web analysis...");
 
+      // Reset states at the beginning
       setIsLoading(true);
       setConnectionStatus("connecting");
+      setReconnectAttempts(0);
 
+      // Input validation
       if (!websiteUrl.trim()) {
         alert("Please enter a website URL");
         return;
       }
+
       if (!apiKey.trim()) {
         alert("Please enter your API key");
         return;
       }
 
       setIsAnalyzing(true);
-      setReconnectAttempts(0);
 
+      // Generate session ID
       let sessionId = "";
-
       if (apiKey.startsWith("TEST")) {
         sessionId = "test_" + apiKey;
       } else {
-        const data = await getId();
-        sessionId = data.sessionId;
+        try {
+          const data = await getId();
+          if (!data?.sessionId) {
+            throw new Error("Failed to get session ID");
+          }
+          sessionId = data.sessionId;
+        } catch (error) {
+          console.error("❌ Error getting session ID:", getErrorMessage(error));
+          alert("❌ Failed to generate session ID");
+          return;
+        }
       }
 
       setSessionId(sessionId);
 
-      const response2 = await axios.post(
-        `${baseUrl}/setup-key/${sessionId}`,
-        {
-          apiKey: apiKey,
-          testKey: testKey,
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
+      // Setup API key with better error handling
+      try {
+        const response2 = await axios.post(
+          `${baseUrl}/setup-key/${sessionId}`,
+          {
+            apiKey: apiKey,
+            testKey: testKey,
           },
-        }
-      );
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+            timeout: 30000, // 30 second timeout for setup
+          }
+        );
 
-      if (!response2 || !response2.data || !response2.data.success) {
-        throw new Error("API key setup failed");
+        if (!response2?.data?.success) {
+          throw new Error(
+            response2?.data?.message || "API key setup failed"
+          );
+        }
+      } catch (error) {
+        console.error("❌ API key setup failed:", getErrorMessage(error));
+        alert("❌ API key setup failed. Please check your key and try again.");
+        return;
       }
 
+      // Determine endpoint
       let endPoint = `start/${sessionId}`;
-
       if (apiKey.startsWith("TEST")) {
         endPoint = `test/${apiKey}`;
       }
 
-      // Clear the API key from memory immediately
+      // Clear the API key from memory immediately after setup
       setApiKey("");
 
-      // Prepare the request payload with additional data
+      // Prepare the request payload
       const requestPayload = {
         goal: goal,
         url: websiteUrl,
@@ -323,7 +345,7 @@ const WebTab: React.FC<TabProps> = ({
 
       console.log("📤 Sending request with payload:", requestPayload);
 
-      // Increase timeout for initial connection
+      // Start analysis with proper timeout and error handling
       const response = await axios.post(
         `${baseUrl}/${endPoint}`,
         requestPayload,
@@ -331,44 +353,63 @@ const WebTab: React.FC<TabProps> = ({
           headers: {
             "Content-Type": "application/json",
           },
-          timeout: 60000, // 60 seconds for initial setup
+          timeout: 120000, // 2 minutes for initial setup (browser launch can be slow)
         }
       );
 
-      if (response && response.data) {
-        // Get the fresh websocket port from response
-        const freshSessionId = response.data.sessionId;
-        console.log(
-          "🔍 websocketport exists?",
-          "websocketport" in response.data
-        );
-        setSessionId(freshSessionId);
-        const url = new URL(baseUrl);
-        const wsProtocol = url.protocol === "https:" ? "wss:" : "ws:";
-        const cleanBaseUrlWithPort = `${wsProtocol}//${url.hostname}/websocket?sessionId=${freshSessionId}`;
-        setWebsocketUrl(cleanBaseUrlWithPort);
-      } else {
-        console.error("❌ Invalid response structure:", response);
-        alert("❌ Invalid response from server");
-        return;
+      // Validate response structure
+      if (!response?.data) {
+        throw new Error("Empty response from server");
       }
 
-      setIsLoading(false);
-    } catch (error: unknown) {
+      // Extract session ID and validate
+      const freshSessionId = response.data.sessionId;
+      if (!freshSessionId) {
+        throw new Error("No session ID returned from server");
+      }
+
+      console.log("✅ Analysis started, session ID:", freshSessionId);
+      setSessionId(freshSessionId);
+
+      // Setup WebSocket URL
+      const url = new URL(baseUrl);
+      const wsProtocol = url.protocol === "https:" ? "wss:" : "ws:";
+      const cleanBaseUrlWithPort = `${wsProtocol}//${url.hostname}/websocket?sessionId=${freshSessionId}`;
+
+      console.log("🔌 WebSocket URL:", cleanBaseUrlWithPort);
+      setWebsocketUrl(cleanBaseUrlWithPort);
+
+      // Update connection status
+      setConnectionStatus("connected");
+
+    } catch (error) {
       const errorMessage = getErrorMessage(error);
       console.error("❌ Error starting session:", errorMessage);
 
+      // Handle different types of errors
       if (errorMessage.includes("timeout")) {
         alert(
-          `⏱️ Initial connection timed out. The session may still be initializing in the background. You can try to reconnect in a moment.`
+          `⏱️ Connection timed out. This might be due to high server load or slow browser startup. The session may still be initializing in the background so try reconnecting.`
         );
         setConnectionStatus("error");
-        setIsAnalyzing(true);
-        // Don't stop analysis here - let user decide to reconnect or stop
+      } else if (errorMessage.includes("Network Error") || errorMessage.includes("ECONNREFUSED")) {
+        alert(`🌐 Network connection error. Please check your internet connection and server availability.`);
+        setConnectionStatus("error");
+        stopAnalysis();
+      } else if (errorMessage.includes("401") || errorMessage.includes("403")) {
+        alert(`🔑 Authentication failed. Please check your API key.`);
+        setConnectionStatus("error");
+        stopAnalysis();
+      } else if (errorMessage.includes("429")) {
+        alert(`⏳ Rate limit exceeded. Please wait a moment and try again.`);
+        setConnectionStatus("error");
+        
       } else {
         alert(`❌ Error starting session: ${errorMessage}`);
+        setConnectionStatus("error");
         stopAnalysis();
       }
+    } finally {
       setIsLoading(false);
     }
   };
@@ -618,9 +659,9 @@ const WebTab: React.FC<TabProps> = ({
                         keyValuePairs.length >= MAX_KEY_VALUE_PAIRS
                       }
                       className={`text-sm px-3 py-1 rounded-md transition-colors duration-200 ${isAnalyzing ||
-                          keyValuePairs.length >= MAX_KEY_VALUE_PAIRS
-                          ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                          : "bg-blue-100 text-blue-700 hover:bg-blue-200"
+                        keyValuePairs.length >= MAX_KEY_VALUE_PAIRS
+                        ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                        : "bg-blue-100 text-blue-700 hover:bg-blue-200"
                         }`}
                     >
                       Add Pair
@@ -658,8 +699,8 @@ const WebTab: React.FC<TabProps> = ({
                           onClick={() => removeKeyValuePair(pair.id)}
                           disabled={isAnalyzing}
                           className={`p-2 rounded-md transition-colors duration-200 ${isAnalyzing
-                              ? "text-gray-400 cursor-not-allowed"
-                              : "text-red-600 hover:bg-red-50"
+                            ? "text-gray-400 cursor-not-allowed"
+                            : "text-red-600 hover:bg-red-50"
                             }`}
                         >
                           <svg
@@ -688,8 +729,8 @@ const WebTab: React.FC<TabProps> = ({
             <button
               onClick={startWebAnalysis}
               className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${isAnalyzing
-                  ? "bg-gray-400 cursor-not-allowed text-white"
-                  : "bg-purple-600 hover:bg-purple-700 text-white"
+                ? "bg-gray-400 cursor-not-allowed text-white"
+                : "bg-purple-600 hover:bg-purple-700 text-white"
                 }`}
               disabled={isAnalyzing}
             >
