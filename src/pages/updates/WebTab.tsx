@@ -167,6 +167,7 @@ const WebTab: React.FC<TabProps> = ({
 
       if (!isSessionActive) {
         console.log("Session is no longer active. Stopping analysis.");
+        setIsAnalyzing(false);
         await stopAnalysis();
         return;
       }
@@ -362,7 +363,7 @@ const WebTab: React.FC<TabProps> = ({
           `⏱️ Initial connection timed out. The session may still be initializing in the background. You can try to reconnect in a moment.`
         );
         setConnectionStatus("error");
-        setIsAnalyzing(false);
+        setIsAnalyzing(true);
         // Don't stop analysis here - let user decide to reconnect or stop
       } else {
         alert(`❌ Error starting session: ${errorMessage}`);
@@ -711,6 +712,8 @@ const WebTab: React.FC<TabProps> = ({
                 {isReconnecting ? "Reconnecting..." : "Try Reconnect"}
               </button>
             )}
+
+            reconnectButton
 
             {(connected || isAnalyzing) && (
               <button
