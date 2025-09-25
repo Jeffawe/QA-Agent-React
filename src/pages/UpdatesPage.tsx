@@ -48,6 +48,38 @@ const UpdatesPage: React.FC = () => {
     window.location.hash = `#tab=${tab}`;
   };
 
+  // Handle URL hash changes for tab routing
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.substring(1); // remove leading "#"
+      const params = new URLSearchParams(hash);
+
+      const tab = params.get('tab');
+      const port = params.get('port');
+
+      if (tab === 'web') {
+        setActiveTab('web');
+      } else if (tab === 'local') {
+        setActiveTab('local');
+      }
+
+      if (port) {
+        setPort(port);
+        const baseUrl = `http://localhost:${port}`;
+        const url = new URL(baseUrl);
+        const wsProtocol = url.protocol === "https:" ? "wss:" : "ws:";
+        const cleanBaseUrlWithPort = `${wsProtocol}//${url.hostname}:${url.port}/websocket?sessionId=1`;
+        connect(cleanBaseUrlWithPort);
+      }
+    };
+
+    handleHashChange();
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+
   const connect = useCallback((socketLocalPort: string) => {
     try {
       console.log('Connecting to WebSocket...');
@@ -133,35 +165,6 @@ const UpdatesPage: React.FC = () => {
       setStopServerLoading(false);
     }
   };
-
-  // Handle URL hash changes for tab routing
-  useEffect(() => {
-    const handleHashChange = () => {
-      const hash = window.location.hash.substring(1); // remove leading "#"
-      const params = new URLSearchParams(hash.replace(/#/g, '&'));
-
-      const tab = params.get('tab');
-      const port = params.get('port');
-
-      if (tab === 'web') { setActiveTab('web'); } else if (tab === 'local') { setActiveTab('local'); }
-      if (port) {
-        setPort(port);
-        const baseUrl = `http://localhost:${port}`;
-        const url = new URL(baseUrl);
-        const wsProtocol = url.protocol === "https:" ? "wss:" : "ws:";
-        // Include the port in the WebSocket URL
-        const cleanBaseUrlWithPort = `${wsProtocol}//${url.hostname}:${url.port}/websocket?sessionId=1`;
-        connect(cleanBaseUrlWithPort);
-      }
-    };
-
-    handleHashChange(); // Check initial hash
-    window.addEventListener('hashchange', handleHashChange);
-
-    return () => {
-      window.removeEventListener('hashchange', handleHashChange);
-    };
-  }, [connect]);
 
   const handleNewLog = (data: WebSocketData) => {
     if (!data.message) return;
