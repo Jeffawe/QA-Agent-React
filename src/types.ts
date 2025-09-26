@@ -6,10 +6,24 @@ export interface PageDetails {
     uniqueID: string;
     screenshot?: string;
     analysis?: Analysis;
+    endpointResults?: EndPointTestResult[];
     description: string;
     visited: boolean;
     links: LinkInfo[];
     testResults?: UITesterResult[];
+}
+
+export interface EndPointTestResult {
+    endpoint: string;           // "POST /users/{id}"
+    success: boolean;
+    error?: string;            // Error message if failed
+    response?: {               // Response if successful
+        status: number;          // HTTP status code
+        statusText: string;      // HTTP status text
+        headers: Record<string, string>;
+        data: string | object | null              // Parsed response body (JSON or text)
+        responseTime: number;   // Time taken in milliseconds
+    };
 }
 
 export interface UITesterResult {

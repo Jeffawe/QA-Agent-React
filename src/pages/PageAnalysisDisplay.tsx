@@ -106,6 +106,12 @@ const PageAnalysisDisplay: React.FC<PageAnalysisDisplayProps> = ({
     }
   };
 
+  const getEndpointStatusColor = (success: boolean) => {
+    return success 
+      ? "bg-green-100 text-green-800" 
+      : "bg-red-100 text-red-800";
+  };
+
   const getTestTypeIcon = (testType: "positive" | "negative") => {
     if (testType === "positive") {
       return (
@@ -206,6 +212,129 @@ const PageAnalysisDisplay: React.FC<PageAnalysisDisplayProps> = ({
     </svg>
   );
 
+  const endpointIcon = (
+    <svg
+      className="w-4 h-4 mr-2"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s1.343-9 3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 919-9"
+      />
+    </svg>
+  );
+
+  const downloadIcon = (
+    <svg
+      className="w-4 h-4 mr-2"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+      />
+    </svg>
+  );
+
+  const downloadPageAnalysis = (page: PageDetails) => {
+    const reportData = {
+      generatedAt: new Date().toISOString(),
+      pageDetails: {
+        title: page.title,
+        url: page.url,
+        uniqueID: page.uniqueID,
+        description: page.description,
+        visited: page.visited,
+      },
+      analysis: page.analysis || null,
+      endpointResults: page.endpointResults || [],
+      testResults: page.testResults || [],
+      links: page.links || [],
+      summary: {
+        totalBugs: page.analysis?.bugs.length || 0,
+        totalUIIssues: page.analysis?.ui_issues.length || 0,
+        totalEndpointTests: page.endpointResults?.length || 0,
+        totalUITests: page.testResults?.length || 0,
+        successfulEndpoints: page.endpointResults?.filter(e => e.success).length || 0,
+        failedEndpoints: page.endpointResults?.filter(e => !e.success).length || 0,
+        successfulUITests: page.testResults?.filter(t => t.success).length || 0,
+        failedUITests: page.testResults?.filter(t => !t.success).length || 0,
+      }
+    };
+
+    const jsonString = JSON.stringify(reportData, null, 2);
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `page-analysis-${page.title.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const downloadAllAnalysis = () => {
+    const reportData = {
+      generatedAt: new Date().toISOString(),
+      totalPages: updates.length,
+      summary: {
+        totalBugs: updates.reduce((sum, page) => sum + (page.analysis?.bugs.length || 0), 0),
+        totalUIIssues: updates.reduce((sum, page) => sum + (page.analysis?.ui_issues.length || 0), 0),
+        totalEndpointTests: updates.reduce((sum, page) => sum + (page.endpointResults?.length || 0), 0),
+        totalUITests: updates.reduce((sum, page) => sum + (page.testResults?.length || 0), 0),
+        successfulEndpoints: updates.reduce((sum, page) => sum + (page.endpointResults?.filter(e => e.success).length || 0), 0),
+        failedEndpoints: updates.reduce((sum, page) => sum + (page.endpointResults?.filter(e => !e.success).length || 0), 0),
+        successfulUITests: updates.reduce((sum, page) => sum + (page.testResults?.filter(t => t.success).length || 0), 0),
+        failedUITests: updates.reduce((sum, page) => sum + (page.testResults?.filter(t => !t.success).length || 0), 0),
+      },
+      pages: updates.map(page => ({
+        title: page.title,
+        url: page.url,
+        uniqueID: page.uniqueID,
+        description: page.description,
+        visited: page.visited,
+        analysis: page.analysis || null,
+        endpointResults: page.endpointResults || [],
+        testResults: page.testResults || [],
+        links: page.links || [],
+      })),
+      logs: logs
+    };
+
+    const jsonString = JSON.stringify(reportData, null, 2);
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `complete-page-analysis-report-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const renderResponseData = (data: unknown): string => {
+    try {
+      if (data === null) return 'null';
+      if (data === undefined) return 'undefined';
+      if (typeof data === 'string') return data;
+      return JSON.stringify(data, null, 2);
+    } catch {
+      return '[Unable to display response data]';
+    }
+  };
+
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Logs Section */}
@@ -245,9 +374,20 @@ const PageAnalysisDisplay: React.FC<PageAnalysisDisplayProps> = ({
 
       {/* Updates Section */}
       <div className="space-y-4 sm:space-y-6">
-        <h3 className="text-lg sm:text-xl font-semibold text-gray-800">
-          Live Page Analysis
-        </h3>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
+          <h3 className="text-lg sm:text-xl font-semibold text-gray-800">
+            Live Page Analysis
+          </h3>
+          {updates.length > 0 && (
+            <button
+              onClick={downloadAllAnalysis}
+              className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors duration-200 self-start sm:self-auto"
+            >
+              {downloadIcon}
+              Download Complete Report
+            </button>
+          )}
+        </div>
         {updates.length === 0 ? (
           <div className="bg-white rounded-xl shadow-lg p-6 sm:p-8 border border-gray-200 text-center">
             <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -284,7 +424,27 @@ const PageAnalysisDisplay: React.FC<PageAnalysisDisplayProps> = ({
                     {page.url}
                   </p>
                 </div>
-                <div className="flex-shrink-0 self-start">
+                <div className="flex-shrink-0 self-start flex items-center space-x-2">
+                  <button
+                    onClick={() => downloadPageAnalysis(page)}
+                    className="inline-flex items-center px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-xs font-medium rounded transition-colors duration-200"
+                    title="Download this page's analysis"
+                  >
+                    <svg
+                      className="w-3 h-3 mr-1"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                      />
+                    </svg>
+                    Download
+                  </button>
                   <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
                     Analyzed
                   </span>
@@ -390,6 +550,80 @@ const PageAnalysisDisplay: React.FC<PageAnalysisDisplayProps> = ({
                   </>
                 )}
 
+                {/* Endpoint Results Section */}
+                {page.endpointResults && page.endpointResults.length > 0 && (
+                  <CollapsibleSection
+                    title="API Endpoint Tests"
+                    count={page.endpointResults.length}
+                    icon={endpointIcon}
+                    bgColor="bg-indigo-50"
+                    textColor="text-indigo-900"
+                    borderColor="border-indigo-200"
+                    defaultExpanded={page.endpointResults.length > 0}
+                  >
+                    <ul className="space-y-3">
+                      {page.endpointResults.map((endpoint, i) => (
+                        <li key={i} className="text-xs sm:text-sm">
+                          <div className="bg-white rounded-lg p-3 border border-indigo-200">
+                            <div className="flex flex-col space-y-2">
+                              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-1 sm:space-y-0">
+                                <span className="font-medium text-gray-800 font-mono">
+                                  {endpoint.endpoint}
+                                </span>
+                                <span
+                                  className={`inline-block px-2 py-1 rounded text-xs self-start ${getEndpointStatusColor(
+                                    endpoint.success
+                                  )}`}
+                                >
+                                  {endpoint.success ? "Success" : "Failed"}
+                                </span>
+                              </div>
+
+                              {endpoint.error && (
+                                <div className="text-red-700 bg-red-50 p-2 rounded">
+                                  <span className="font-medium">Error:</span>{" "}
+                                  {endpoint.error.length > MAX_STRING_LENGTH
+                                    ? `${endpoint.error.substring(
+                                        0,
+                                        MAX_STRING_LENGTH
+                                      )}...`
+                                    : endpoint.error}
+                                </div>
+                              )}
+
+                              {endpoint.response && (
+                                <div className="text-green-700 bg-green-50 p-2 rounded space-y-1">
+                                  <div>
+                                    <span className="font-medium">Status:</span>{" "}
+                                    {endpoint.response.status} {endpoint.response.statusText}
+                                  </div>
+                                  <div>
+                                    <span className="font-medium">Response Time:</span>{" "}
+                                    {endpoint.response.responseTime}ms
+                                  </div>
+                                  {endpoint.response.data && (
+                                    <div>
+                                      <span className="font-medium">Response Data:</span>
+                                      <pre className="mt-1 font-mono text-xs bg-gray-100 p-2 rounded max-h-32 overflow-y-auto whitespace-pre-wrap break-words">
+                                        {(() => {
+                                          const dataStr = renderResponseData(endpoint.response.data);
+                                          return dataStr.length > MAX_STRING_LENGTH
+                                            ? `${dataStr.substring(0, MAX_STRING_LENGTH)}...`
+                                            : dataStr;
+                                        })()}
+                                      </pre>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </CollapsibleSection>
+                )}
+
                 {/* Test Results Section */}
                 {page.testResults && page.testResults.length > 0 && (
                   <CollapsibleSection
@@ -434,7 +668,7 @@ const PageAnalysisDisplay: React.FC<PageAnalysisDisplayProps> = ({
                                   <span className="font-medium">Led to:</span>{" "}
                                   {test.ledTo.length > MAX_STRING_LENGTH
                                     ? `${test.ledTo.substring(0, MAX_STRING_LENGTH)}...`
-                                    : test.response}
+                                    : test.ledTo}
                                 </div>
                               )}
 
@@ -446,7 +680,7 @@ const PageAnalysisDisplay: React.FC<PageAnalysisDisplayProps> = ({
                                         0,
                                         MAX_STRING_LENGTH
                                       )}...`
-                                    : test.response}
+                                    : test.error}
                                 </div>
                               )}
 
