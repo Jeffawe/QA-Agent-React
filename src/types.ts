@@ -15,9 +15,15 @@ export interface PageDetails {
 
 export interface EndPointTestResult {
     endpoint: string;           // "POST /users/{id}"
+    request: {                  // Request details
+        method: string;           // HTTP method
+        headers: Record<string, string>;
+        body?: string | object | null;               // Request body (if applicable)
+    };
     success: boolean;
     error?: string;            // Error message if failed
-    response?: {               // Response if successful
+    response?: {
+        url: string;             // Final URL after redirects            // Response if successful
         status: number;          // HTTP status code
         statusText: string;      // HTTP status text
         headers: Record<string, string>;

@@ -585,6 +585,16 @@ const PageAnalysisDisplay: React.FC<PageAnalysisDisplayProps> = ({
                                 <span className="font-medium text-gray-800 font-mono">
                                   {endpoint.endpoint}
                                 </span>
+                                {endpoint.response?.url && (
+                                  <a
+                                    href={endpoint.response.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-xs text-blue-600 underline break-all"
+                                  >
+                                    {endpoint.response.url}
+                                  </a>
+                                )}
                                 <span
                                   className={`inline-block px-2 py-1 rounded text-xs self-start ${getEndpointStatusColor(
                                     endpoint.success
@@ -617,14 +627,43 @@ const PageAnalysisDisplay: React.FC<PageAnalysisDisplayProps> = ({
                                     <span className="font-medium">Response Time:</span>{" "}
                                     {endpoint.response.responseTime}ms
                                   </div>
+                                  {endpoint.request?.body && (
+                                    <div>
+                                      <div className="flex items-center space-x-2">
+                                        <span className="font-medium">Request Body:</span>
+                                        {(() => {
+                                          const key = `endpoint-${i}-req`;
+                                          const dataStr = renderResponseData(endpoint.request!.body);
+                                          const isExpanded = !!expandedResponseIndices[key];
+                                          const short = dataStr.length > MAX_STRING_LENGTH ? `${dataStr.substring(0, MAX_STRING_LENGTH)}...` : dataStr;
+
+                                          return (
+                                            <>
+                                              <button
+                                                onClick={() => toggleResponseExpanded(key)}
+                                                className="text-blue-600 hover:underline text-xs"
+                                                aria-expanded={isExpanded}
+                                              >
+                                                {isExpanded ? 'Show less' : (dataStr.length > MAX_STRING_LENGTH ? 'Show more' : 'Show')}
+                                              </button>
+                                              <pre className={`mt-1 font-mono text-xs bg-gray-100 p-2 rounded overflow-y-auto whitespace-pre-wrap break-words ${isExpanded ? 'max-h-96' : 'max-h-32'}`}>
+                                                {isExpanded ? dataStr : short}
+                                              </pre>
+                                            </>
+                                          );
+                                        })()}
+                                      </div>
+                                    </div>
+                                  )}
+
                                   {endpoint.response.data && (
                                     <div>
                                       <div className="flex items-center space-x-2">
                                         <span className="font-medium">Response Data:</span>
                                         {/* Show more/less toggle */}
                                         {(() => {
-                                          const key = `endpoint-${i}`;
-                                          const dataStr = renderResponseData(endpoint.response.data);
+                                          const key = `endpoint-${i}-data`;
+                                          const dataStr = renderResponseData(endpoint.response!.data);
                                           const isExpanded = !!expandedResponseIndices[key];
                                           const short = dataStr.length > MAX_STRING_LENGTH ? `${dataStr.substring(0, MAX_STRING_LENGTH)}...` : dataStr;
 
