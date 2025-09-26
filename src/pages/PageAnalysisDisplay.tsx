@@ -44,9 +44,8 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
           {title} ({count})
         </h5>
         <svg
-          className={`w-4 h-4 transition-transform duration-200 ${
-            isExpanded ? "rotate-180" : ""
-          }`}
+          className={`w-4 h-4 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""
+            }`}
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -107,10 +106,19 @@ const PageAnalysisDisplay: React.FC<PageAnalysisDisplayProps> = ({
   };
 
   const getEndpointStatusColor = (success: boolean) => {
-    return success 
-      ? "bg-green-100 text-green-800" 
+    return success
+      ? "bg-green-100 text-green-800"
       : "bg-red-100 text-red-800";
   };
+
+  function formatStatus(status: number, statusText: string) {
+    const isSuccess = status >= 200 && status < 300;
+    return (
+      <span className={isSuccess ? "text-green-600" : "text-red-600"}>
+        {isSuccess ? "✅" : "❌"} {status} {statusText}
+      </span>
+    );
+  }
 
   const getTestTypeIcon = (testType: "positive" | "negative") => {
     if (testType === "positive") {
@@ -273,7 +281,7 @@ const PageAnalysisDisplay: React.FC<PageAnalysisDisplayProps> = ({
     const jsonString = JSON.stringify(reportData, null, 2);
     const blob = new Blob([jsonString], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
-    
+
     const link = document.createElement('a');
     link.href = url;
     link.download = `page-analysis-${page.title.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}-${new Date().toISOString().split('T')[0]}.json`;
@@ -314,7 +322,7 @@ const PageAnalysisDisplay: React.FC<PageAnalysisDisplayProps> = ({
     const jsonString = JSON.stringify(reportData, null, 2);
     const blob = new Blob([jsonString], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
-    
+
     const link = document.createElement('a');
     link.href = url;
     link.download = `complete-page-analysis-report-${new Date().toISOString().split('T')[0]}.json`;
@@ -333,6 +341,13 @@ const PageAnalysisDisplay: React.FC<PageAnalysisDisplayProps> = ({
     } catch {
       return '[Unable to display response data]';
     }
+  };
+
+  // Track which endpoint response data blocks are expanded (keyed by a stable key)
+  const [expandedResponseIndices, setExpandedResponseIndices] = useState<Record<string, boolean>>({});
+
+  const toggleResponseExpanded = (key: string) => {
+    setExpandedResponseIndices((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
   return (
@@ -584,9 +599,9 @@ const PageAnalysisDisplay: React.FC<PageAnalysisDisplayProps> = ({
                                   <span className="font-medium">Error:</span>{" "}
                                   {endpoint.error.length > MAX_STRING_LENGTH
                                     ? `${endpoint.error.substring(
-                                        0,
-                                        MAX_STRING_LENGTH
-                                      )}...`
+                                      0,
+                                      MAX_STRING_LENGTH
+                                    )}...`
                                     : endpoint.error}
                                 </div>
                               )}
@@ -595,23 +610,40 @@ const PageAnalysisDisplay: React.FC<PageAnalysisDisplayProps> = ({
                                 <div className="text-green-700 bg-green-50 p-2 rounded space-y-1">
                                   <div>
                                     <span className="font-medium">Status:</span>{" "}
-                                    {endpoint.response.status} {endpoint.response.statusText}
+                                    {formatStatus(endpoint.response.status, endpoint.response.statusText)}
                                   </div>
+
                                   <div>
                                     <span className="font-medium">Response Time:</span>{" "}
                                     {endpoint.response.responseTime}ms
                                   </div>
                                   {endpoint.response.data && (
                                     <div>
-                                      <span className="font-medium">Response Data:</span>
-                                      <pre className="mt-1 font-mono text-xs bg-gray-100 p-2 rounded max-h-32 overflow-y-auto whitespace-pre-wrap break-words">
+                                      <div className="flex items-center space-x-2">
+                                        <span className="font-medium">Response Data:</span>
+                                        {/* Show more/less toggle */}
                                         {(() => {
+                                          const key = `endpoint-${i}`;
                                           const dataStr = renderResponseData(endpoint.response.data);
-                                          return dataStr.length > MAX_STRING_LENGTH
-                                            ? `${dataStr.substring(0, MAX_STRING_LENGTH)}...`
-                                            : dataStr;
+                                          const isExpanded = !!expandedResponseIndices[key];
+                                          const short = dataStr.length > MAX_STRING_LENGTH ? `${dataStr.substring(0, MAX_STRING_LENGTH)}...` : dataStr;
+
+                                          return (
+                                            <>
+                                              <button
+                                                onClick={() => toggleResponseExpanded(key)}
+                                                className="text-blue-600 hover:underline text-xs"
+                                                aria-expanded={isExpanded}
+                                              >
+                                                {isExpanded ? 'Show less' : (dataStr.length > MAX_STRING_LENGTH ? 'Show more' : 'Show')}
+                                              </button>
+                                              <pre className={`mt-1 font-mono text-xs bg-gray-100 p-2 rounded overflow-y-auto whitespace-pre-wrap break-words ${isExpanded ? 'max-h-96' : 'max-h-32'}`}>
+                                                {isExpanded ? dataStr : short}
+                                              </pre>
+                                            </>
+                                          );
                                         })()}
-                                      </pre>
+                                      </div>
                                     </div>
                                   )}
                                 </div>
@@ -677,9 +709,9 @@ const PageAnalysisDisplay: React.FC<PageAnalysisDisplayProps> = ({
                                   <span className="font-medium">Error:</span>{" "}
                                   {test.error.length > MAX_STRING_LENGTH
                                     ? `${test.error.substring(
-                                        0,
-                                        MAX_STRING_LENGTH
-                                      )}...`
+                                      0,
+                                      MAX_STRING_LENGTH
+                                    )}...`
                                     : test.error}
                                 </div>
                               )}
@@ -689,9 +721,9 @@ const PageAnalysisDisplay: React.FC<PageAnalysisDisplayProps> = ({
                                   <span className="font-medium">Response:</span>{" "}
                                   {test.response.length > MAX_STRING_LENGTH
                                     ? `${test.response.substring(
-                                        0,
-                                        MAX_STRING_LENGTH
-                                      )}...`
+                                      0,
+                                      MAX_STRING_LENGTH
+                                    )}...`
                                     : test.response}
                                 </div>
                               )}
