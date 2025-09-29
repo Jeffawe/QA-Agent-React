@@ -56,6 +56,15 @@ const TestingGuide: React.FC = () => {
                                 <div className="bg-blue-400 bg-opacity-30 rounded-lg p-4 border border-blue-300">
                                     <h4 className="font-semibold mb-2 flex items-center">
                                         <span className="w-2 h-2 bg-white rounded-full mr-2"></span>
+                                        Endpoint Testing
+                                    </h4>
+                                    <p className="text-blue-100 text-sm">
+                                        Can now test API endpoints that use OpenAPI or Swagger documentation. No API key needed for basic testing.
+                                    </p>
+                                </div>
+                                <div className="bg-blue-400 bg-opacity-30 rounded-lg p-4 border border-blue-300">
+                                    <h4 className="font-semibold mb-2 flex items-center">
+                                        <span className="w-2 h-2 bg-white rounded-full mr-2"></span>
                                         Achieve a QA goal given to it
                                     </h4>
                                     <p className="text-blue-100 text-sm">

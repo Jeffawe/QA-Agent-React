@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { EndpointTesting } from "./EndpointTesting";
 
 interface ConfigField {
     key: string;
@@ -29,8 +30,7 @@ const configurationFields: ConfigField[] = [
             "Define what the QA Agent should focus on during testing. This guides the AI's analysis and reporting priorities.",
         placeholder: "e.g., 'Find all broken links and UI inconsistencies'",
         required: true,
-        disabled: false,
-        note: "Currently not configurable in beta version",
+        disabled: false
     },
     {
         key: "key",
@@ -70,18 +70,6 @@ const configurationFields: ConfigField[] = [
         note: "Default is 3001, change if port is already in use",
     },
     {
-        key: "websocket",
-        label: "WebSocket Port",
-        type: "number",
-        defaultValue: 3002,
-        description:
-            "Port for real-time communication and live updates. Should be different from the server port.",
-        placeholder: "3002",
-        required: false,
-        disabled: false,
-        note: "Used for live monitoring in the Updates page",
-    },
-    {
         key: "test-mode",
         label: "Test Mode",
         type: "boolean",
@@ -91,6 +79,27 @@ const configurationFields: ConfigField[] = [
         required: false,
         disabled: false,
         note: "Only enable if you're a verified beta tester",
+    },
+    {
+        key: "headless",
+        label: "Headless Mode",
+        type: "boolean",
+        defaultValue: true,
+        description:
+            "Whether the browser should run in headless mode (no GUI). Headless mode is faster and uses fewer resources.",
+        required: false,
+        disabled: false
+    },
+    {
+        key: "endpoint",
+        label: "Endpoint Testing",
+        type: "boolean",
+        defaultValue: false,
+        description:
+            "Enable endpoint testing mode to test API endpoints instead of a website. Requires an API endpoint URL.",
+        required: false,
+        disabled: false,
+        note: "Currently in beta; basic mode doesn't require an API key (you may still need to provide one but it won't be used)"
     },
 ];
 
@@ -421,6 +430,8 @@ const Configuration = () => {
                     Notes: Values are auto-parsed when possible (numbers, <code>true</code>/<code>false</code>/<code>null</code>, JSON objects/arrays). Otherwise, they’re saved as strings.
                 </div>
             </div>
+
+            <EndpointTesting />
 
             {/* Generated Configuration */}
             <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 border border-gray-200">

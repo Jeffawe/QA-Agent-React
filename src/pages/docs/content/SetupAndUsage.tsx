@@ -15,11 +15,12 @@ const SetupAndUsage = () => {
     const [key, setKey] = useState('');
     const [url, setUrl] = useState('');
     const [port, setPort] = useState('3001');
-    const [websocketport, setWebsocketPort] = useState('3002');
     const [testMode, setTestMode] = useState(false);
+    const [headless, setHeadless] = useState(true);
+    const [endPointMode, setEndPointMode] = useState(false);
 
     const generateCommand = () => {
-        return `agent-run --goal='${goal}' --key='${key}' --url='${url}' --port=${port} --websocket=${websocketport} --test-mode=${testMode}`;
+        return `agent-run --goal='${goal}' --key='${key}' --url='${url}' --port=${port} --test-mode=${testMode} --headless=${headless} --endpoint=${endPointMode}`;
     };
 
     const generateConfigCommand = () => {
@@ -32,8 +33,9 @@ const SetupAndUsage = () => {
             "key": "${key}",
             "url": "${url}",
             "port": ${port},
-            "websocket": ${websocketport},
             "test-mode": ${testMode}
+            "headless": ${headless},
+            "endpoint": ${endPointMode}
             }`;
 
         // Create blob and download
@@ -99,9 +101,9 @@ const SetupAndUsage = () => {
                 <h2 className="text-lg sm:text-xl font-semibold mb-3 text-gray-800">Basic Usage</h2>
                 <p className="text-gray-600 mb-3 text-sm sm:text-base">Run the agent with the following command structure (Use the command generator below to get started):</p>
                 <div className="relative mb-4">
-                    <pre className="bg-gray-900 text-green-400 p-3 sm:p-4 rounded-lg font-mono text-xs sm:text-sm overflow-x-auto break-all sm:break-normal">agent-run --goal='...' --key='...' --url='...' --port=3001 --websocket=3002 --test-mode=false</pre>
+                    <pre className="bg-gray-900 text-green-400 p-3 sm:p-4 rounded-lg font-mono text-xs sm:text-sm overflow-x-auto break-all sm:break-normal">agent-run --goal='...' --key='...' --url='...' --port=3001 --headless=true --endpoint=false --test-mode=false</pre>
                     <button
-                        onClick={() => copyToClipboard("agent-run --goal='...' --key='...' --url='...' --port=3001 --websocket=3002 --test-mode=false")}
+                        onClick={() => copyToClipboard("agent-run --goal='...' --key='...' --url='...' --port=3001 --test-mode=false --headless=true --endpoint=false")}
                         className="absolute top-2 right-2 bg-blue-600 hover:bg-blue-700 text-white px-2 sm:px-3 py-1 rounded text-xs transition-colors duration-200"
                     >
                         Copy
@@ -172,16 +174,6 @@ const SetupAndUsage = () => {
                                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm sm:text-base"
                             />
                         </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Web Socket Port (Optional)</label>
-                            <input
-                                placeholder="3002"
-                                value={websocketport}
-                                onChange={e => setWebsocketPort(e.target.value)}
-                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm sm:text-base"
-                            />
-                        </div>
                     </div>
 
                     <div>
@@ -189,6 +181,30 @@ const SetupAndUsage = () => {
                         <select
                             value={testMode.toString()}
                             onChange={e => setTestMode(e.target.value === 'true')}
+                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm sm:text-base"
+                        >
+                            <option value="true">True</option>
+                            <option value="false">False</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Headless (Default: True) (Whether the service should run in headless mode)</label>
+                        <select
+                            value={headless.toString()}
+                            onChange={e => setHeadless(e.target.value === 'true')}
+                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm sm:text-base"
+                        >
+                            <option value="false">False</option>
+                            <option value="true">True</option>
+                        </select>
+                    </div>
+
+                     <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Endpoint Mode (Default: False) (Whether the service should run in endpoint mode, testing API endpoints and not a website)</label>
+                        <select
+                            value={endPointMode.toString()}
+                            onChange={e => setEndPointMode(e.target.value === 'true')}
                             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm sm:text-base"
                         >
                             <option value="false">False</option>
@@ -244,7 +260,7 @@ const SetupAndUsage = () => {
                     You can view live updates from the model in the <span className="text-blue-600 hover:underline cursor-pointer" onClick={() => window.location.href = "/updates#tab=local"}>Updates</span> page.
                 </p>
                 <p className="text-gray-600 mb-3 text-sm sm:text-base">
-                    Upon running the code. A new browser window will open (via puppeteer) to view the agent progress. The updates tab simply provide you a textual flow of the agents actions
+                    Upon running the code. A new browser window will open (if you have headless set to false) to view the agent progress. The updates tab simply provide you a textual flow of the agents actions
                 </p>
             </div>
         </div>

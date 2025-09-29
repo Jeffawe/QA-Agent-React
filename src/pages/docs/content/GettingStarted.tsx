@@ -40,7 +40,7 @@ const GettingStarted: React.FC = () => {
                             </div>
                             <div className="flex items-center space-x-2">
                                 <span className="w-2 h-2 bg-green-400 rounded-full"></span>
-                                <span>Accessibility analysis</span>
+                                <span>API Endpoint Testing</span>
                             </div>
                             <div className="flex items-center space-x-2">
                                 <span className="w-2 h-2 bg-green-400 rounded-full"></span>

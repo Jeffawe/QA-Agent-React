@@ -14,13 +14,7 @@ interface InitialData {
 
 const BASE_URL = import.meta.env.VITE_API_URL;
 
-const message = `QA Agent is currently in beta. Please note:
-
-- Some features may not work as expected
-- I am going to add more features like pausing and resuming the agent
-- The goal field is not yet configurable
-- Analysis results may vary in accuracy (I'm still working heavily on better analysis per page)
-- I appreciate your feedback as I improve the tool`;
+const message = `QA Agent is currently in beta. Please note that some features may not work as expected. We are actively working on improvements and appreciate your feedback!`;
 
 // Main Updates Page Component with Tabs
 const UpdatesPage: React.FC = () => {
