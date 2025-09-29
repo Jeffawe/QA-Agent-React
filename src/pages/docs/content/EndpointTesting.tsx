@@ -15,7 +15,7 @@ export const EndpointTesting = () => {
           <p className="text-gray-600 leading-relaxed mb-4 text-sm sm:text-base">
             QA-Agent now allows users to not just test sites but API endpoints. Simply put the URL of an API endpoint (it has to use OpenAPI or Swagger so we can extract the docs from it) and then watch it run. Basic endpoint testing doesn't require an API Key (you may still need to provide one but it won't be used).
           </p>
-          
+
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
             <p className="text-yellow-800 text-sm">
               💡 When using Endpoint Testing, please don't forget to set endpoint to true (if not it will use the normal analysis mode)
@@ -27,7 +27,7 @@ export const EndpointTesting = () => {
               💡 We are launching advanced mode soon that may need an API key and would add more features.
             </p>
           </div>
-          
+
           <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
             <h3 className="text-base sm:text-lg font-medium text-gray-800 mb-2">Headers in Endpoint Testing</h3>
             <p className="text-gray-600 text-sm sm:text-base mb-3">
@@ -38,7 +38,7 @@ export const EndpointTesting = () => {
             </p>
             <div className="bg-white rounded border p-3 mt-2 font-mono text-sm">
               <div className="text-gray-700">
-                <span className="font-semibold">Key:</span> header:api-key<br/>
+                <span className="font-semibold">Key:</span> header:api-key<br />
                 <span className="font-semibold">Value:</span> your-api-key-value
               </div>
             </div>
@@ -46,6 +46,36 @@ export const EndpointTesting = () => {
               The "header:" prefix and the ":" are important as that is how it'll know it's a header.
             </p>
           </div>
+
+          <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 mt-5">
+            <h3 className="text-base sm:text-lg font-medium text-gray-800 mb-2">Configuration in Endpoint Testing</h3>
+            <p className="text-gray-600 text-sm sm:text-base mb-3">
+              In endpoint testing, you can also customize the query, header or body of the request per API endpoint.
+            </p>
+            <p className="text-gray-600 text-sm sm:text-base">
+              To add a new configuration to the request we'll be making to test, simply do:
+            </p>
+            <div className="bg-white rounded border p-3 mt-2 font-mono text-sm">
+              <div className="text-gray-700">
+                <span className="font-semibold">Key:</span> endpoint:/create/user<br />
+                <span className="font-semibold">Value:</span> {"{"}<br />
+                &nbsp;&nbsp;"query": "POST",<br />
+                &nbsp;&nbsp;"headers": {"{"} "api-key": "xxxxxxxxxxx" {"}"},<br />
+                &nbsp;&nbsp;"body": {"{"} "name": "Test User", "email": "6T2eI@example.com" {"}"},<br />
+                {"}"}
+              </div>
+            </div>
+            <p className="text-gray-500 text-xs sm:text-sm mt-2">
+              The "endpoint:" prefix and the ":" in the key are important as that is how it'll know it's a endpoint (it can parse it however but it's a good way to make sure).
+            </p>
+          </div>
+
+          <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4 mt-5">
+            <p className="text-yellow-800 text-sm">
+              💡 To see an example of a config file go to the <a>Examples</a> section
+            </p>
+          </div>
+
         </div>
       </div>
     </div>

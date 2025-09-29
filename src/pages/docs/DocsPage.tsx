@@ -6,6 +6,7 @@ import { ChevronDown, ChevronRight, Menu, X } from "lucide-react";
 import TestingPage from "./content/TestingPage";
 import WebConfig from "./content/WebConfig";
 import FeedbackPage from "./content/Feedback";
+import Examples from "./content/Examples";
 
 const docsStructure = [
     {
@@ -47,7 +48,13 @@ const docsStructure = [
         component: TestingPage,
         children: []
     },
-        {
+    {
+        id: 'example',
+        title: 'Examples',
+        component: Examples,
+        children: []
+    },
+    {
         id: 'feedback',
         title: 'Feedback',
         component: FeedbackPage,

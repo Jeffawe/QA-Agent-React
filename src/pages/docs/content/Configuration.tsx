@@ -329,6 +329,9 @@ const Configuration = () => {
                                 <span>Easy team sharing</span>
                             </div>
                         </div>
+                        <p className="text-gray-600 leading-relaxed mb-4 text-sm sm:text-base mt-5">
+                            To see an example of a config file go to the Examples section.
+                        </p>
                     </div>
                 </div>
             </div>
