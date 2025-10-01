@@ -13,7 +13,7 @@ export const EndpointTesting = () => {
         <div className="flex-1">
           <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-3">Endpoint Testing Mode</h2>
           <p className="text-gray-600 leading-relaxed mb-4 text-sm sm:text-base">
-            QA-Agent now allows users to not just test sites but API endpoints. Simply put the URL of an API endpoint (it has to use OpenAPI or Swagger so we can extract the docs from it) and then watch it run. Basic endpoint testing doesn't require an API Key (you may still need to provide one but it won't be used).
+            QA-Agent now allows users to not just test sites but API endpoints. Simply put the URL of an API endpoint (it has to use OpenAPI or Swagger so we can extract the docs from it) and then watch it run. Basic endpoint testing doesn't require an API Key.
           </p>
 
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">

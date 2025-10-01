@@ -342,7 +342,7 @@ const WebTab: React.FC<TabProps> = ({
         return;
       }
 
-      if (!apiKey.trim()) {
+      if (!apiKey.trim() && !endpointMode) {
         alert("Please enter your API key");
         return;
       }
@@ -370,30 +370,33 @@ const WebTab: React.FC<TabProps> = ({
       setSessionId(sessionId);
 
       // Setup API key with better error handling
-      try {
-        const response2 = await axios.post(
-          `${baseUrl}/setup-key/${sessionId}`,
-          {
-            apiKey: apiKey,
-            testKey: testKey,
-          },
-          {
-            headers: {
-              "Content-Type": "application/json",
+      // Only setup API key is not in endpoint mode (or using advanced endpoint mode)
+      if (!endpointMode || (endpointMode && apiKey)) {
+        try {
+          const response2 = await axios.post(
+            `${baseUrl}/setup-key/${sessionId}`,
+            {
+              apiKey: apiKey,
+              testKey: testKey,
             },
-            timeout: 30000, // 30 second timeout for setup
-          }
-        );
-
-        if (!response2?.data?.success) {
-          throw new Error(
-            response2?.data?.message || "API key setup failed"
+            {
+              headers: {
+                "Content-Type": "application/json",
+              },
+              timeout: 30000, // 30 second timeout for setup
+            }
           );
+
+          if (!response2?.data?.success) {
+            throw new Error(
+              response2?.data?.message || "API key setup failed"
+            );
+          }
+        } catch (error) {
+          console.error("❌ API key setup failed:", getErrorMessage(error));
+          alert("❌ API key setup failed. Please check your key and try again.");
+          return;
         }
-      } catch (error) {
-        console.error("❌ API key setup failed:", getErrorMessage(error));
-        alert("❌ API key setup failed. Please check your key and try again.");
-        return;
       }
 
       // Determine endpoint

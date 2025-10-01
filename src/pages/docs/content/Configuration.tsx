@@ -99,7 +99,7 @@ const configurationFields: ConfigField[] = [
             "Enable endpoint testing mode to test API endpoints instead of a website. Requires an API endpoint URL.",
         required: false,
         disabled: false,
-        note: "Currently in beta; basic mode doesn't require an API key (you may still need to provide one but it won't be used)"
+        note: "Currently in beta; basic mode doesn't require an API key"
     },
 ];
 
