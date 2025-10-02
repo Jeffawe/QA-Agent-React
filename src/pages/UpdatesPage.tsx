@@ -59,7 +59,7 @@ const UpdatesPage: React.FC = () => {
 
       if (port) {
         setPort(port);
-        const baseUrl = `http://localhost:${port}`;
+        const baseUrl = `https://localhost:${port}`;
         const url = new URL(baseUrl);
         const wsProtocol = url.protocol === "https:" ? "wss:" : "ws:";
         const cleanBaseUrlWithPort = `${wsProtocol}//${url.hostname}:${url.port}/websocket?sessionId=1`;
