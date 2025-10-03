@@ -18,7 +18,7 @@ const LocalTab: React.FC<TabProps> = ({
   const [showLogs, setShowLogs] = useState(true);
 
   const connectToWebSocket = () => {
-    const baseUrl = `https://localhost:${port}`;
+    const baseUrl = `http://localhost:${port}`;
     const url = new URL(baseUrl);
     const wsProtocol = url.protocol === "https:" ? "wss:" : "ws:";
     // Include the port in the WebSocket URL
