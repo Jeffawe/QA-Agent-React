@@ -109,6 +109,56 @@ const WebTab: React.FC<TabProps> = ({
     );
   };
 
+  async function encryptApiKey(apiKey: string, publicKey: string) {
+    try {
+      // Convert the PEM public key to a format Web Crypto can use
+      const pemHeader = "-----BEGIN PUBLIC KEY-----";
+      const pemFooter = "-----END PUBLIC KEY-----";
+      const pemContents = publicKey
+        .replace(pemHeader, "")
+        .replace(pemFooter, "")
+        .replace(/\s/g, "");
+
+      // Convert base64 to ArrayBuffer
+      const binaryDer = atob(pemContents);
+      const binaryDerArray = new Uint8Array(binaryDer.length);
+      for (let i = 0; i < binaryDer.length; i++) {
+        binaryDerArray[i] = binaryDer.charCodeAt(i);
+      }
+
+      // Import the public key
+      const cryptoKey = await crypto.subtle.importKey(
+        "spki",
+        binaryDerArray.buffer,
+        {
+          name: "RSA-OAEP",
+          hash: "SHA-256",
+        },
+        false,
+        ["encrypt"]
+      );
+
+      // Encrypt the API key
+      const encoded = new TextEncoder().encode(apiKey);
+      const encrypted = await crypto.subtle.encrypt(
+        {
+          name: "RSA-OAEP",
+        },
+        cryptoKey,
+        encoded
+      );
+
+      // Convert to base64 for transmission
+      const encryptedArray = new Uint8Array(encrypted);
+      const encryptedBase64 = btoa(String.fromCharCode(...encryptedArray));
+
+      return encryptedBase64;
+    } catch (error) {
+      console.error("Encryption failed:", error);
+      throw new Error("Failed to encrypt API key");
+    }
+  }
+
   const handleConfigFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -373,17 +423,24 @@ const WebTab: React.FC<TabProps> = ({
       // Only setup API key is not in endpoint mode (or using advanced endpoint mode)
       if (!endpointMode || (endpointMode && apiKey)) {
         try {
+          // First, get the public key from the server
+          const keyResponse = await axios.get(`${baseUrl}/public-key`);
+          const publicKey = keyResponse.data.publicKey;
+
+          // Encrypt the API key
+          const encryptedApiKey = await encryptApiKey(apiKey, publicKey);
+
           const response2 = await axios.post(
             `${baseUrl}/setup-key/${sessionId}`,
             {
-              apiKey: apiKey,
+              encryptedApiKey: encryptedApiKey,
               testKey: testKey,
             },
             {
               headers: {
                 "Content-Type": "application/json",
               },
-              timeout: 30000, // 30 second timeout for setup
+              timeout: 30000,
             }
           );
 

@@ -64,8 +64,7 @@ const LocalTab: React.FC<TabProps> = ({
                   </h4>
                   <ol className="text-sm text-blue-800 space-y-1">
                     <li>
-                      1. Make sure you have the QA Agent running locally via npm
-                      package
+                      1. Make sure you have the QA Agent running locally via npm package
                     </li>
                     <li>2. Enter the port (typically 3001)</li>
                     <li>3. Press "Connect" to establish connection</li>
