@@ -7,6 +7,7 @@ import TestingPage from "./content/TestingPage";
 import WebConfig from "./content/WebConfig";
 import FeedbackPage from "./content/Feedback";
 import Examples from "./content/Examples";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const docsStructure = [
     {
@@ -65,7 +66,12 @@ const docsStructure = [
 const DocsPage = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false); // Changed default to false for mobile-first
     const [expandedSections, setExpandedSections] = useState(new Set(['setup', 'usage']));
-    const [currentPath, setCurrentPath] = useState('getting-started');
+
+    const location = useLocation();
+    const navigate = useNavigate();
+
+    // remove /docs prefix if present
+    const currentPath = location.pathname.replace(/^\/docs\/?/, '') || 'getting-started';
 
     const toggleSection = (sectionId: string) => {
         const newExpanded = new Set(expandedSections);
@@ -78,8 +84,7 @@ const DocsPage = () => {
     };
 
     const navigateToSection = (path: string) => {
-        setCurrentPath(path);
-        // Close sidebar on mobile after navigation
+        navigate(`/docs/${path}`);
         if (window.innerWidth < 1024) {
             setSidebarOpen(false);
         }

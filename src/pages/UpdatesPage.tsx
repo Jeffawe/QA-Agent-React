@@ -1,6 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import BetaWarning from "./BetaWarning";
-import LocalTab from "./updates/LocalTab";
 import WebTab from "./updates/WebTab";
 import type { PageDetails } from "../types";
 
@@ -14,12 +12,8 @@ interface InitialData {
 
 const BASE_URL = import.meta.env.VITE_API_URL;
 
-const message = `QA Agent is currently in beta. Please note that some features may not work as expected. We are actively working on improvements and appreciate your feedback!`;
-
 // Main Updates Page Component with Tabs
 const UpdatesPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState('web');
-  const [port, setPort] = useState('3001');
   const [connected, setConnected] = useState(false);
   const [updates, setUpdates] = useState<PageDetails[]>([]);
   const [logs, setLogs] = useState<string[]>([]);
@@ -37,28 +31,15 @@ const UpdatesPage: React.FC = () => {
       .catch(err => console.error('Wake-up ping failed:', err));
   }, []);
 
-  const switchTab = (tab: string) => {
-    setActiveTab(tab);
-    window.location.hash = `#tab=${tab}`;
-  };
-
   // Handle URL hash changes for tab routing
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash.substring(1); // remove leading "#"
       const params = new URLSearchParams(hash);
 
-      const tab = params.get('tab');
       const port = params.get('port');
 
-      if (tab === 'web') {
-        setActiveTab('web');
-      } else if (tab === 'local') {
-        setActiveTab('local');
-      }
-
       if (port) {
-        setPort(port);
         const baseUrl = `http://localhost:${port}`;
         const url = new URL(baseUrl);
         const wsProtocol = url.protocol === "https:" ? "wss:" : "ws:";
@@ -197,60 +178,17 @@ const UpdatesPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-3 sm:p-6">
       <div className="max-w-6xl mx-auto">
-        <BetaWarning message={message} />
 
-        {/* Tab Navigation */}
-        <div className="bg-white rounded-xl shadow-lg mb-6 border border-gray-200 overflow-hidden">
-          <div className="flex">
-            <button
-              onClick={() => switchTab('web')}
-              className={`flex-1 px-4 sm:px-6 py-4 font-medium transition-all duration-200 relative ${activeTab === 'web'
-                ? 'bg-purple-50 text-purple-700 border-b-2 border-purple-500'
-                : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
-                }`}
-            >
-              <div className="flex items-center justify-center space-x-2">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9v-9m0-9v9" />
-                </svg>
-                <span className="text-sm sm:text-base">Web Analysis</span>
-              </div>
-            </button>
-            <button
-              onClick={() => switchTab('local')}
-              className={`flex-1 px-4 sm:px-6 py-4 font-medium transition-all duration-200 relative ${activeTab === 'local'
-                ? 'bg-blue-50 text-blue-700 border-b-2 border-blue-500'
-                : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
-                }`}
-            >
-              <div className="flex items-center justify-center space-x-2">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
-                <span className="text-sm sm:text-base">Local Agent</span>
-              </div>
-            </button>
-          </div>
-        </div>
-
-        {/* Tab Content */}
-        <div className="transition-all duration-300">
-          {activeTab === 'local'
-            ? <LocalTab
-              logs={logs}
-              connect={connect}
-              disconnect={disconnect}
-              setwebsocketPort={setPort}
-              port={port}
-              updates={updates}
-              connected={connected}
-              connectedLoading={connectedLoading}
-              stopServerloading={stopServerloading}
-            />
-            : <WebTab logs={logs} connect={connect} disconnect={disconnect}
-              updates={updates} connected={connected} socketRef={socketRef} />
-          }
-        </div>
+        {/* Content */}
+        <WebTab
+          connected={connected}
+          connectedLoading={connectedLoading}
+          stopServerloading={stopServerloading}
+          logs={logs}
+          updates={updates}
+          connect={connect}
+          disconnect={disconnect}
+        />
       </div>
     </div>
   );

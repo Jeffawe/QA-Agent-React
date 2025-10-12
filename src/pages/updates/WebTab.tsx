@@ -623,8 +623,9 @@ const WebTab: React.FC<TabProps> = ({
                   <ol className="text-sm text-purple-800 space-y-1">
                     <li>1. Enter the website URL you want to analyze</li>
                     <li>2. Provide your API key for authentication</li>
-                    <li>3. Click "Start Analysis" to begin the process</li>
-                    <li>4. Monitor real-time progress and results</li>
+                    <li>3. Enter your testing goals e.g Crawl the Entire Site and Test it</li>
+                    <li>4. Click "Start Analysis" to begin the process</li>
+                    <li>5. Monitor real-time progress and results</li>
                   </ol>
                 </div>
               </div>
@@ -664,6 +665,10 @@ const WebTab: React.FC<TabProps> = ({
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Website URL
             </label>
+            <p className="text-xs text-gray-500 mb-2">
+              Enter the URL of the website you want to analyze e.g 
+              https://example.com
+            </p>
             <input
               type="url"
               placeholder="https://example.com"
@@ -678,9 +683,12 @@ const WebTab: React.FC<TabProps> = ({
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Gemini API Key (For Testing this is the unique key given to you)
             </label>
+            <p className="text-xs text-gray-500 mb-2">
+              Enter your Gemini API key (The agent uses Gemini to generate responses). Use FREE-TRIAL to test out the agent for free
+            </p>
             <input
               type="password"
-              placeholder="Enter your API key"
+              placeholder="Enter your API key e.g FREE-TRIAL"
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
@@ -692,9 +700,12 @@ const WebTab: React.FC<TabProps> = ({
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Goal of the Agent
             </label>
+            <p className="text-xs text-gray-500 mb-2">
+              Enter your testing goal e.g Crawl the Entire Site and Test it
+            </p>
             <input
               type="string"
-              placeholder="Enter your Goal"
+              placeholder="Enter your Goal e.g Crawl the Entire Site and Test it"
               value={goal}
               onChange={(e) => setGoal(e.target.value)}
               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
@@ -775,8 +786,130 @@ const WebTab: React.FC<TabProps> = ({
               </div>
             </div>
             <p className="text-sm text-blue-700 mt-2">
-              Use Endpoint mode if you're testing API endpoints instead of a website.
+              Use Endpoint mode if you're testing API endpoints instead of a website (or a visual element).
             </p>
+          </div>
+
+          {/* Additional Information Section */}
+          <div className="border border-gray-200 rounded-lg">
+            <button
+              onClick={() => setAdditionalInfoExpanded(!additionalInfoExpanded)}
+              disabled={isAnalyzing}
+              className={`w-full px-4 py-3 text-left flex items-center justify-between hover:bg-gray-50 transition-colors duration-200 rounded-lg ${isAnalyzing ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+            >
+              <div>
+                <h4 className="font-medium text-gray-800">
+                  Additional Information
+                </h4>
+                <p>
+                  Add custom key-value pairs to provide extra content for the agent to use. Check out our{' '}
+                  <a
+                    href="/docs/web/configuration"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:underline"
+                  >
+                    documentation
+                  </a>{' '}
+                  for more information (optional)
+                </p>
+
+              </div>
+              <svg
+                className={`w-5 h-5 text-gray-500 transition-transform duration-200 ${additionalInfoExpanded ? "rotate-180" : ""
+                  }`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
+            </button>
+
+            {additionalInfoExpanded && (
+              <div className="px-4 pb-4 border-t border-gray-100">
+                <div className="space-y-3 mt-4">
+                  <div className="flex justify-between items-center">
+                    <p className="text-sm text-gray-600">
+                      Add up to {MAX_KEY_VALUE_PAIRS} custom key-value pairs
+                    </p>
+                    <button
+                      onClick={addKeyValuePair}
+                      disabled={
+                        isAnalyzing ||
+                        keyValuePairs.length >= MAX_KEY_VALUE_PAIRS
+                      }
+                      className={`text-sm px-3 py-1 rounded-md transition-colors duration-200 ${isAnalyzing ||
+                        keyValuePairs.length >= MAX_KEY_VALUE_PAIRS
+                        ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                        : "bg-blue-100 text-blue-700 hover:bg-blue-200"
+                        }`}
+                    >
+                      Add Pair
+                    </button>
+                  </div>
+
+                  {keyValuePairs.map((pair) => (
+                    <div key={pair.id} className="flex space-x-2 items-center">
+                      <div className="flex-1">
+                        <input
+                          type="text"
+                          placeholder="Key"
+                          value={pair.key}
+                          onChange={(e) =>
+                            updateKeyValuePair(pair.id, "key", e.target.value)
+                          }
+                          disabled={isAnalyzing}
+                          className="w-full p-2 border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <input
+                          type="text"
+                          placeholder="Value"
+                          value={pair.value}
+                          onChange={(e) =>
+                            updateKeyValuePair(pair.id, "value", e.target.value)
+                          }
+                          disabled={isAnalyzing}
+                          className="w-full p-2 border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
+                        />
+                      </div>
+                      {keyValuePairs.length > 1 && (
+                        <button
+                          onClick={() => removeKeyValuePair(pair.id)}
+                          disabled={isAnalyzing}
+                          className={`p-2 rounded-md transition-colors duration-200 ${isAnalyzing
+                            ? "text-gray-400 cursor-not-allowed"
+                            : "text-red-600 hover:bg-red-50"
+                            }`}
+                        >
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                            />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Config File Upload Section */}
@@ -899,118 +1032,6 @@ const WebTab: React.FC<TabProps> = ({
                       </div>
                     </div>
                   )}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Additional Information Section */}
-          <div className="border border-gray-200 rounded-lg">
-            <button
-              onClick={() => setAdditionalInfoExpanded(!additionalInfoExpanded)}
-              disabled={isAnalyzing}
-              className={`w-full px-4 py-3 text-left flex items-center justify-between hover:bg-gray-50 transition-colors duration-200 rounded-lg ${isAnalyzing ? "opacity-50 cursor-not-allowed" : ""
-                }`}
-            >
-              <div>
-                <h4 className="font-medium text-gray-800">
-                  Additional Information
-                </h4>
-                <p className="text-sm text-gray-600">
-                  Add custom key-value pairs for extra context (optional)
-                </p>
-              </div>
-              <svg
-                className={`w-5 h-5 text-gray-500 transition-transform duration-200 ${additionalInfoExpanded ? "rotate-180" : ""
-                  }`}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 9l-7 7-7-7"
-                />
-              </svg>
-            </button>
-
-            {additionalInfoExpanded && (
-              <div className="px-4 pb-4 border-t border-gray-100">
-                <div className="space-y-3 mt-4">
-                  <div className="flex justify-between items-center">
-                    <p className="text-sm text-gray-600">
-                      Add up to {MAX_KEY_VALUE_PAIRS} custom key-value pairs
-                    </p>
-                    <button
-                      onClick={addKeyValuePair}
-                      disabled={
-                        isAnalyzing ||
-                        keyValuePairs.length >= MAX_KEY_VALUE_PAIRS
-                      }
-                      className={`text-sm px-3 py-1 rounded-md transition-colors duration-200 ${isAnalyzing ||
-                        keyValuePairs.length >= MAX_KEY_VALUE_PAIRS
-                        ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                        : "bg-blue-100 text-blue-700 hover:bg-blue-200"
-                        }`}
-                    >
-                      Add Pair
-                    </button>
-                  </div>
-
-                  {keyValuePairs.map((pair) => (
-                    <div key={pair.id} className="flex space-x-2 items-center">
-                      <div className="flex-1">
-                        <input
-                          type="text"
-                          placeholder="Key"
-                          value={pair.key}
-                          onChange={(e) =>
-                            updateKeyValuePair(pair.id, "key", e.target.value)
-                          }
-                          disabled={isAnalyzing}
-                          className="w-full p-2 border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
-                        />
-                      </div>
-                      <div className="flex-1">
-                        <input
-                          type="text"
-                          placeholder="Value"
-                          value={pair.value}
-                          onChange={(e) =>
-                            updateKeyValuePair(pair.id, "value", e.target.value)
-                          }
-                          disabled={isAnalyzing}
-                          className="w-full p-2 border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
-                        />
-                      </div>
-                      {keyValuePairs.length > 1 && (
-                        <button
-                          onClick={() => removeKeyValuePair(pair.id)}
-                          disabled={isAnalyzing}
-                          className={`p-2 rounded-md transition-colors duration-200 ${isAnalyzing
-                            ? "text-gray-400 cursor-not-allowed"
-                            : "text-red-600 hover:bg-red-50"
-                            }`}
-                        >
-                          <svg
-                            className="w-4 h-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                            />
-                          </svg>
-                        </button>
-                      )}
-                    </div>
-                  ))}
                 </div>
               </div>
             )}

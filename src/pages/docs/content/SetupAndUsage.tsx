@@ -1,14 +1,6 @@
 import { useState } from "react";
-import BetaWarning from "../../BetaWarning";
 
 const defaultGoal = "Crawl the entire page";
-
-const betaMessage = `QA Agent is currently in beta. Please note:
-
-- Some features may not work as expected (Do reach out to me if they don't)
-- The goal field is not yet configurable
-- Analysis results may vary in accuracy (I'm still working heavily on better analysis per page)
-- I appreciate your feedback as I improve the tool`;
 
 const SetupAndUsage = () => {
     const [goal] = useState(defaultGoal);
@@ -63,8 +55,6 @@ const SetupAndUsage = () => {
                 <h1 className="text-2xl sm:text-4xl font-bold mb-4 text-gray-800">Setup & Usage</h1>
                 <p className="text-base sm:text-lg text-gray-600">Get started with QA Agent in minutes</p>
             </div>
-
-            <BetaWarning message={betaMessage} />
 
             {/* Installation Section */}
             <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 border border-gray-200">
@@ -251,17 +241,6 @@ const SetupAndUsage = () => {
                         </div>
                     </div>
                 </div>
-            </div>
-
-            {/* Live Updates Section */}
-            <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 border border-gray-200">
-                <h2 className="text-lg sm:text-xl font-semibold mb-3 text-gray-800">Live Updates</h2>
-                <p className="text-gray-600 mb-3 text-sm sm:text-base">
-                    You can view live updates from the model in the <span className="text-blue-600 hover:underline cursor-pointer" onClick={() => window.location.href = "/updates#tab=local"}>Updates</span> page.
-                </p>
-                <p className="text-gray-600 mb-3 text-sm sm:text-base">
-                    Upon running the code. A new browser window will open (if you have headless set to false) to view the agent progress. The updates tab simply provide you a textual flow of the agents actions
-                </p>
             </div>
         </div>
     );

@@ -7,7 +7,7 @@ import TestingPage from './pages/docs/content/TestingPage';
 import TestingGuide from './pages/TestingGuide';
 import DocsPage from './pages/docs/DocsPage';
 import AdminHealthDashboard from './pages/HealthTab';
-
+import DemoPage from './pages/DemoPage';
 
 const App: React.FC = () => {
   return (
@@ -23,9 +23,6 @@ const App: React.FC = () => {
                 <Link to="/" className="flex items-center space-x-2">
                   <span className='text-2xl'>QA Agent</span>
                   <span className="relative">
-                    <span className="bg-gradient-to-r bg-blue-500 text-white text-xs px-2 py-1 rounded-full font-bold tracking-wide shadow-md border border-amber-300">
-                      BETA
-                    </span>
                     <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
                   </span>
                 </Link>
@@ -51,6 +48,7 @@ const App: React.FC = () => {
             <Route path="/docs" element={<DocsPage />} />
             <Route path="/docs/*" element={<DocsPage />} />
             <Route path="/health" element={<AdminHealthDashboard />} />
+            <Route path="/demo" element={<DemoPage />} />
             {/* Add more routes as needed */}
           </Routes>
         </main>
