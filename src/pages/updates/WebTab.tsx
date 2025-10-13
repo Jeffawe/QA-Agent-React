@@ -2,6 +2,7 @@ import type { TabProps } from "../../types";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import axios from "axios";
 import PageAnalysisDisplay from "../PageAnalysisDisplay";
+import usageTracker from "./freeTrial";
 
 const baseUrl = import.meta.env.VITE_API_URL;
 const testKey = import.meta.env.VITE_TEST_KEY;
@@ -381,6 +382,15 @@ const WebTab: React.FC<TabProps> = ({
     try {
       console.log("🚀 Starting web analysis...");
 
+      if (apiKey === "FREE-TRIAL") {
+        const isFree = await usageTracker(websiteUrl, goal);
+
+        if (!isFree.success) {
+          alert(isFree.message || "Something went wrong. Please try again or use you're own API key.");
+          return
+        }
+      }
+
       // Reset states at the beginning
       setIsLoading(true);
       setConnectionStatus("connecting");
@@ -401,7 +411,7 @@ const WebTab: React.FC<TabProps> = ({
 
       // Generate session ID
       let sessionId = "";
-      if (apiKey.startsWith("TEST")) {
+      if (apiKey.startsWith("TEST") || apiKey === "FREE-TRIAL") {
         sessionId = "test_" + apiKey;
       } else {
         try {
@@ -413,7 +423,7 @@ const WebTab: React.FC<TabProps> = ({
         } catch (error) {
           console.error("❌ Error getting session ID:", getErrorMessage(error));
           alert("❌ Failed to generate session ID");
-          return;
+          throw error;
         }
       }
 
@@ -421,44 +431,46 @@ const WebTab: React.FC<TabProps> = ({
 
       // Setup API key with better error handling
       // Only setup API key is not in endpoint mode (or using advanced endpoint mode)
-      if (!endpointMode || (endpointMode && apiKey)) {
-        try {
-          // First, get the public key from the server
-          const keyResponse = await axios.get(`${baseUrl}/public-key`);
-          const publicKey = keyResponse.data.publicKey;
+      if (!apiKey.startsWith("TEST") && apiKey !== "FREE-TRIAL") {
+        if (!endpointMode || (endpointMode && apiKey)) {
+          try {
+            // First, get the public key from the server
+            const keyResponse = await axios.get(`${baseUrl}/public-key`);
+            const publicKey = keyResponse.data.publicKey;
 
-          // Encrypt the API key
-          const encryptedApiKey = await encryptApiKey(apiKey, publicKey);
+            // Encrypt the API key
+            const encryptedApiKey = await encryptApiKey(apiKey, publicKey);
 
-          const response2 = await axios.post(
-            `${baseUrl}/setup-key/${sessionId}`,
-            {
-              encryptedApiKey: encryptedApiKey,
-              testKey: testKey,
-            },
-            {
-              headers: {
-                "Content-Type": "application/json",
+            const response2 = await axios.post(
+              `${baseUrl}/setup-key/${sessionId}`,
+              {
+                encryptedApiKey: encryptedApiKey,
+                testKey: testKey,
               },
-              timeout: 30000,
-            }
-          );
-
-          if (!response2?.data?.success) {
-            throw new Error(
-              response2?.data?.message || "API key setup failed"
+              {
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                timeout: 30000,
+              }
             );
+
+            if (!response2?.data?.success) {
+              throw new Error(
+                response2?.data?.message || "API key setup failed"
+              );
+            }
+          } catch (error) {
+            console.error("❌ API key setup failed:", getErrorMessage(error));
+            alert("❌ API key setup failed. Please check your key and try again.");
+            throw error;
           }
-        } catch (error) {
-          console.error("❌ API key setup failed:", getErrorMessage(error));
-          alert("❌ API key setup failed. Please check your key and try again.");
-          return;
         }
       }
 
       // Determine endpoint
       let endPoint = `start/${sessionId}`;
-      if (apiKey.startsWith("TEST")) {
+      if (apiKey.startsWith("TEST") || apiKey == "FREE-TRIAL" || apiKey.startsWith("FREE-TRIAL")) {
         endPoint = `test/${apiKey}`;
       }
 
@@ -666,7 +678,7 @@ const WebTab: React.FC<TabProps> = ({
               Website URL
             </label>
             <p className="text-xs text-gray-500 mb-2">
-              Enter the URL of the website you want to analyze e.g 
+              Enter the URL of the website you want to analyze e.g
               https://example.com
             </p>
             <input
