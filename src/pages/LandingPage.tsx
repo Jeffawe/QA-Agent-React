@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowRight, Zap, Code, BarChart3, CheckCircle } from 'lucide-react';
 import problemStatementImage from '../assets/qa-agent-image.png';
-import beforeImage from '../assets/Before.png';
+import beforeImage from '../assets/before.png';
 import { useNavigate } from 'react-router-dom';
 
 const LandingPage: React.FC = () => {
