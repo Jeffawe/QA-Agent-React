@@ -397,7 +397,6 @@ const WebTab: React.FC<TabProps> = ({
           alert(isFree.error ? `Something went wrong: ${isFree.error}` : "Something went wrong. Please try again or use you're own API key.");
           return
         }
-        setApiKey("TEST-FREE-TRIAL");
       }
 
       // Reset states at the beginning
@@ -492,8 +491,6 @@ const WebTab: React.FC<TabProps> = ({
         url: websiteUrl,
         data: getAdditionalData(),
       };
-
-      console.log("📤 Sending request with payload:", requestPayload);
 
       // Start analysis with proper timeout and error handling
       const response = await axios.post(
@@ -712,7 +709,7 @@ const WebTab: React.FC<TabProps> = ({
               type="password"
               placeholder="Enter your API key e.g FREE-TRIAL"
               value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
+              onChange={(e) => e.target.value === "FREE-TRIAL" ? setApiKey("TEST-FREE-TRIAL") : setApiKey(e.target.value)}
               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
               disabled={isAnalyzing}
             />
