@@ -383,7 +383,7 @@ const WebTab: React.FC<TabProps> = ({
     try {
       console.log("🚀 Starting web analysis...");
 
-      if(isStarting){
+      if (isStarting) {
         return
       }
 
@@ -397,6 +397,7 @@ const WebTab: React.FC<TabProps> = ({
           alert(isFree.error ? `Something went wrong: ${isFree.error}` : "Something went wrong. Please try again or use you're own API key.");
           return
         }
+        setApiKey("TEST-FREE-TRIAL");
       }
 
       // Reset states at the beginning
