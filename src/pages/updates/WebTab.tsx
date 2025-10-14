@@ -386,7 +386,7 @@ const WebTab: React.FC<TabProps> = ({
         const isFree = await usageTracker(websiteUrl, goal);
 
         if (!isFree.success) {
-          alert(isFree.message || "Something went wrong. Please try again or use you're own API key.");
+          alert(isFree.error ? `Something went wrong: ${isFree.error}` : "Something went wrong. Please try again or use you're own API key.");
           return
         }
       }

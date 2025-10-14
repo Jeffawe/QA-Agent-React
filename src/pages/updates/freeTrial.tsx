@@ -1,7 +1,7 @@
 const checkUsageLink = import.meta.env.VITE_SERVERLESS_FUNCTION;
 
 interface UsageResponse {
-  success?: boolean;
+  success: boolean;
   testId?: string;
   remainingDailyUses?: number;
   remainingMonthlyUses?: number;
@@ -58,13 +58,13 @@ const usageTracker = async (
     const data: UsageResponse = await response.json();
 
     if (!response.ok) {
-      return { error: data.error || 'Failed to check usage', message: data.message };
+      return { success: false, error: data.error || 'Failed to check usage', message: data.message };
     }
 
     return data;
   } catch (error) {
     console.error('Usage check failed:', error);
-    return { error: 'Failed to connect to service' };
+    return { success: false, error: 'Failed to connect to service' };
   }
 };
 

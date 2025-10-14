@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowRight, Zap, Code, BarChart3, CheckCircle } from 'lucide-react';
 import problemStatementImage from '../assets/qa-agent-image.png';
+import beforeImage from '../assets/Before.png';
 import { useNavigate } from 'react-router-dom';
 
 const LandingPage: React.FC = () => {
@@ -77,9 +78,8 @@ const LandingPage: React.FC = () => {
 
         <div className="text-center max-w-4xl mx-auto relative z-10">
           <h1
-            className={`text-6xl md:text-8xl font-bold text-white mb-8 transition-all duration-500 ease-out ${
-              titleVisible ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-8'
-            }`}
+            className={`text-6xl md:text-8xl font-bold text-white mb-8 transition-all duration-500 ease-out ${titleVisible ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-8'
+              }`}
             style={{
               textShadow: '0 4px 20px rgba(0,0,0,0.3)',
               background: 'linear-gradient(135deg, #ffffff 0%, #e3f2fd 50%, #bbdefb 100%)',
@@ -92,9 +92,8 @@ const LandingPage: React.FC = () => {
           </h1>
 
           <div
-            className={`transition-all duration-500 ease-out delay-100 ${
-              contentVisible ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-8'
-            }`}
+            className={`transition-all duration-500 ease-out delay-100 ${contentVisible ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-8'
+              }`}
           >
             <p className="text-2xl md:text-3xl text-blue-100 mb-8 font-semibold">
               Automated Visual & API Testing Without Writing Test Scripts
@@ -188,20 +187,7 @@ const LandingPage: React.FC = () => {
             <div>
               <h3 className="text-2xl font-bold text-gray-900 mb-6">What You Pass In</h3>
               <div className="bg-gray-900 rounded-lg p-6 font-mono text-sm text-gray-100 overflow-auto">
-                <pre>{`{
-  "url": "https://myapp.com",
-  "goal": "Test all form buttons 
-            and validate responses",
-  "endpoints": [
-    "/api/users",
-    "/api/submit"
-  ],
-  "actions": [
-    "fill form",
-    "click buttons",
-    "check responses"
-  ]
-}`}</pre>
+                <img src={beforeImage} alt="Example Code" className="max-w-full max-h-full" />
               </div>
             </div>
 
