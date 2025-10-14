@@ -60,6 +60,7 @@ const WebTab: React.FC<TabProps> = ({
   const [configFileExpanded, setConfigFileExpanded] = useState(false);
   const [configFile, setConfigFile] = useState<ConfigFile | null>(null);
   const [configFileName, setConfigFileName] = useState<string>("");
+  const [isStarting, setStarting] = useState(false);
 
   const connectedRef = useRef(connected);
 
@@ -382,6 +383,13 @@ const WebTab: React.FC<TabProps> = ({
     try {
       console.log("🚀 Starting web analysis...");
 
+      if(isStarting){
+        return
+      }
+
+      setStarting(true)
+
+      // Check if the API key is a free trial
       if (apiKey === "FREE-TRIAL") {
         const isFree = await usageTracker(websiteUrl, goal);
 
@@ -552,6 +560,7 @@ const WebTab: React.FC<TabProps> = ({
       }
     } finally {
       setIsLoading(false);
+      setStarting(false);
     }
   };
 
