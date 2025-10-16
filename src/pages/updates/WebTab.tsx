@@ -156,8 +156,7 @@ const WebTab: React.FC<TabProps> = ({
 
       return encryptedBase64;
     } catch (error) {
-      console.error("Encryption failed:", error);
-      throw new Error("Failed to encrypt API key");
+      throw new Error(`Failed to encrypt API key. Error: ${error}`);
     }
   }
 
@@ -224,7 +223,7 @@ const WebTab: React.FC<TabProps> = ({
           timeout: 100000,
         });
       } catch (error) {
-        console.error("Error stopping analysis:", error);
+        alert(`Error stopping analysis: ${getErrorMessage(error)}`);
       }
       disconnect();
       setIsAnalyzing(false);
@@ -232,7 +231,7 @@ const WebTab: React.FC<TabProps> = ({
       setIsReconnecting(false);
       setSessionId("");
     } catch (error) {
-      console.error("Error stopping analysis:", error);
+      alert(`Error stopping analysis: ${getErrorMessage(error)}`);
     } finally {
       setStopping(false);
     }
@@ -245,8 +244,8 @@ const WebTab: React.FC<TabProps> = ({
           timeout: 5000,
         });
         return response.data.active === true;
-      } catch (error) {
-        console.error("Error checking session status:", error);
+      } catch (error: unknown) {
+        alert(`Error checking session status: ${getErrorMessage(error)}`);
         return false;
       }
     },
@@ -329,7 +328,7 @@ const WebTab: React.FC<TabProps> = ({
       setIsReconnecting(false);
 
       if (nextAttempts >= MAX_RECONNECT_ATTEMPTS) {
-        console.log("Max reconnection attempts reached. Stopping analysis.");
+        alert("Max reconnection attempts reached. Stopping analysis.");
         await stopAnalysis();
       } else {
         setConnectionStatus("error");
@@ -419,8 +418,12 @@ const WebTab: React.FC<TabProps> = ({
 
       // Generate session ID
       let sessionId = "";
-      if (apiKey.startsWith("TEST") || apiKey === "FREE-TRIAL") {
+      if (apiKey.startsWith("TEST")) {
         sessionId = "test_" + apiKey;
+      } else if (apiKey === "FREE-TRIAL") {
+        // Generate a random string
+        const randomString = Math.random().toString(36).substring(2, 10);
+        sessionId = "test_" + apiKey + randomString;
       } else {
         try {
           const data = await getId();
@@ -429,7 +432,6 @@ const WebTab: React.FC<TabProps> = ({
           }
           sessionId = data.sessionId;
         } catch (error) {
-          console.error("❌ Error getting session ID:", getErrorMessage(error));
           alert("❌ Failed to generate session ID");
           throw error;
         }
@@ -469,7 +471,6 @@ const WebTab: React.FC<TabProps> = ({
               );
             }
           } catch (error) {
-            console.error("❌ API key setup failed:", getErrorMessage(error));
             alert("❌ API key setup failed. Please check your key and try again.");
             throw error;
           }
@@ -522,8 +523,6 @@ const WebTab: React.FC<TabProps> = ({
       const url = new URL(baseUrl);
       const wsProtocol = url.protocol === "https:" ? "wss:" : "ws:";
       const cleanBaseUrlWithPort = `${wsProtocol}//${url.hostname}/websocket?sessionId=${freshSessionId}`;
-
-      console.log("🔌 WebSocket URL:", cleanBaseUrlWithPort);
       setWebsocketUrl(cleanBaseUrlWithPort);
 
       // Update connection status
@@ -568,7 +567,7 @@ const WebTab: React.FC<TabProps> = ({
       return response.data;
     } catch (error: unknown) {
       const errorMessage = getErrorMessage(error);
-      console.error("❌ Error getting session ID:", errorMessage);
+      alert(`❌ Error getting session ID: ${errorMessage}`);
       throw error;
     }
   };
