@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ArrowRight, Zap, Code, BarChart3, CheckCircle } from 'lucide-react';
 import problemStatementImage from '../assets/qa-agent-image.png';
 import beforeImage from '../assets/before.png';
+import afterImage from '../assets/after.png';
 import { useNavigate } from 'react-router-dom';
 
 const LandingPage: React.FC = () => {
@@ -192,31 +193,9 @@ const LandingPage: React.FC = () => {
             </div>
 
             <div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-6">What You Get Back</h3>
-              <div className="bg-gray-50 rounded-lg p-8 border-2 border-gray-200">
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                      <CheckCircle className="w-4 h-4 text-white" />
-                    </div>
-                    <span className="text-gray-800">Button states tested</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white text-lg">✕</div>
-                    <span className="text-gray-800">Broken links found (2)</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center text-white text-sm">!</div>
-                    <span className="text-gray-800">Slow API responses detected</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm">📊</div>
-                    <span className="text-gray-800">Visual regression warnings</span>
-                  </div>
-                  <button className="w-full mt-6 bg-teal-400 hover:bg-teal-500 text-blue-900 font-bold py-2 px-4 rounded-lg transition-all duration-200">
-                    View Full Report
-                  </button>
-                </div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-6">What You Get</h3>
+              <div className="bg-gray-900 rounded-lg p-6 font-mono text-sm text-gray-100 overflow-auto">
+                <img src={afterImage} alt="Example Code" className="max-w-full max-h-full" />
               </div>
             </div>
           </div>
