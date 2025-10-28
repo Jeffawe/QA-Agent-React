@@ -188,10 +188,25 @@ export interface FirstConnectionData {
     timestamp: number;
 }
 
+export interface DisconnectionData {
+    timestamp: number;
+    statistics: Statistics;
+    status: string;
+    message: string;
+}
+
+export interface Statistics {
+    totalPagesVisited: number;
+    totalLinksClicked: number;
+    totalBugsFound: number;
+    totalEndpointsTested?: number;
+    totalTokenUsage: number;
+}
+
 // Enhanced message structure with sessionId
 export interface RedisMessage {
     type: string;
     sessionId: string;
-    data: WebSocketData | ConnectionData | FirstConnectionData;
+    data: WebSocketData | ConnectionData | FirstConnectionData | DisconnectionData;
     timestamp: string;
 }

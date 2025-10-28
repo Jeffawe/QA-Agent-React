@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import WebTab from "./updates/WebTab";
-import type { PageDetails } from "../types";
+import type { PageDetails, Statistics } from "../types";
+import DoneModal from "./updates/DoneModal";
+import { useNavigate } from "react-router-dom";
 
 interface WebSocketData { message?: string; timestamp: number; page?: PageDetails; }
 
@@ -17,8 +19,11 @@ const UpdatesPage: React.FC = () => {
   const [connected, setConnected] = useState(false);
   const [updates, setUpdates] = useState<PageDetails[]>([]);
   const [logs, setLogs] = useState<string[]>([]);
+  const [donePageModalOpen, setDonePageModalOpen] = useState(false);
+  const [donePageStats, setDonePageStats] = useState<Statistics | null>(null);
 
   const socketRef = useRef<WebSocket | null>(null);
+  const navigate = useNavigate();
 
   //Loading
   const [stopServerloading, setStopServerLoading] = useState(false);
@@ -53,6 +58,10 @@ const UpdatesPage: React.FC = () => {
     return () => window.removeEventListener('hashchange', handleHashChange);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const gotoFeedbackPage = () => {
+    navigate('/docs/feedback');
+  }
 
 
   const connect = useCallback((socketLocalPort: string) => {
@@ -96,7 +105,10 @@ const UpdatesPage: React.FC = () => {
               alert(`⚠️ ${message.data.message}`);
               break;
             case 'DONE':
-              alert('Agent is Done! Leave a feedback of how he did!');
+              console.log('Agent is Done! Leave a feedback of how he did!');
+              console.log(message.data);
+              setDonePageStats(message.data.statistics);
+              setDonePageModalOpen(true);
               break;
             case 'INITIAL_DATA':
               handleNewCrawlMapUpdate(message.data);
@@ -189,6 +201,16 @@ const UpdatesPage: React.FC = () => {
           connect={connect}
           disconnect={disconnect}
         />
+      </div>
+
+      <div>
+        {donePageModalOpen && donePageStats && (
+          <DoneModal
+            stats={donePageStats}
+            onClose={() => setDonePageModalOpen(false)}
+            onFeedbackClick={() => gotoFeedbackPage()}
+          />
+        )}
       </div>
     </div>
   );
