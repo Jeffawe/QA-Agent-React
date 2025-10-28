@@ -200,9 +200,7 @@ const UpdatesPage: React.FC = () => {
           connect={connect}
           disconnect={disconnect}
         />
-      </div>
 
-      <div>
         {donePageModalOpen && donePageStats && (
           <DoneModal
             stats={donePageStats}
