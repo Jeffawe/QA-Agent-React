@@ -64,7 +64,6 @@ const UpdatesPage: React.FC = () => {
     navigate('/docs/feedback');
   }
 
-
   const connect = useCallback((socketLocalPort: string) => {
     try {
       console.log('Connecting to WebSocket...');
@@ -84,12 +83,14 @@ const UpdatesPage: React.FC = () => {
         setConnectedLoading(false);
         alert('WebSocket connection error. Please check if the port is valid.');
         console.error('WebSocket error:', error);
+        setDone(false);
       };
 
       ws.onclose = () => {
         console.log('WebSocket connection closed.');
         setConnected(false);
         setConnectedLoading(false);
+        setDone(false);
       };
 
       ws.onmessage = (event) => {
@@ -108,9 +109,10 @@ const UpdatesPage: React.FC = () => {
               break;
             case 'DONE':
               console.log('Agent is Done! Leave a feedback of how he did!');
+              setDone(true);
+              console.log('Statistics:', message.data.statistics);
               setDonePageStats(message.data.statistics);
               setDonePageModalOpen(true);
-              setDone(true);
               break;
             case 'INITIAL_DATA':
               handleNewCrawlMapUpdate(message.data);
@@ -205,7 +207,7 @@ const UpdatesPage: React.FC = () => {
           isDone={done}
         />
 
-        {donePageModalOpen && donePageStats && (
+        {donePageModalOpen && donePageStats !== null && (
           <DoneModal
             stats={donePageStats}
             onClose={() => setDonePageModalOpen(false)}

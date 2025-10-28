@@ -356,7 +356,7 @@ const WebTab: React.FC<TabProps> = ({
 
   // Connect to WebSocket
   useEffect(() => {
-    if (websocketUrl && isAnalyzing && !isReconnecting && !connected) {
+    if (websocketUrl && isAnalyzing && !isReconnecting && !connected && !isDone) {
       console.log("🔌 Establishing WebSocket connection...");
       setConnectionStatus("connecting");
       connect(websocketUrl);
