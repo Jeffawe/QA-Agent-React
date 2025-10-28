@@ -17,6 +17,7 @@ const BASE_URL = import.meta.env.VITE_API_URL;
 // Main Updates Page Component with Tabs
 const UpdatesPage: React.FC = () => {
   const [connected, setConnected] = useState(false);
+  const [done, setDone] = useState(false);
   const [updates, setUpdates] = useState<PageDetails[]>([]);
   const [logs, setLogs] = useState<string[]>([]);
   const [donePageModalOpen, setDonePageModalOpen] = useState(false);
@@ -76,6 +77,7 @@ const UpdatesPage: React.FC = () => {
         setConnected(true);
         console.log('WebSocket connection opened.');
         setConnectedLoading(false);
+        setDone(false);
       };
 
       ws.onerror = (error) => {
@@ -83,11 +85,14 @@ const UpdatesPage: React.FC = () => {
         setConnectedLoading(false);
         alert('WebSocket connection error. Please check if the port is valid.');
         console.error('WebSocket error:', error);
+        setDone(false);
       };
 
       ws.onclose = () => {
+        console.log('WebSocket connection closed.');
         setConnected(false);
         setConnectedLoading(false);
+        setDone(false);
       };
 
       ws.onmessage = (event) => {
@@ -108,6 +113,7 @@ const UpdatesPage: React.FC = () => {
               console.log('Agent is Done! Leave a feedback of how he did!');
               setDonePageStats(message.data.statistics);
               setDonePageModalOpen(true);
+              setDone(true);
               break;
             case 'INITIAL_DATA':
               handleNewCrawlMapUpdate(message.data);
@@ -199,6 +205,7 @@ const UpdatesPage: React.FC = () => {
           updates={updates}
           connect={connect}
           disconnect={disconnect}
+          isDone={done}
         />
 
         {donePageModalOpen && donePageStats && (
