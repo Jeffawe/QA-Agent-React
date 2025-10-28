@@ -95,8 +95,8 @@ const UpdatesPage: React.FC = () => {
           const message = JSON.parse(event.data);
 
           switch (message.type) {
-            case 'CONNECTION':
-              alert(`🔗 Connection confirmed: ${message.data.message}`);
+            case 'CONNECTION_ACK':
+              console.log(`🔗 Connection confirmed: ${message.data.message}`);
               break;
             case 'ISSUE':
               alert(`❗Issue detected: ${message.data.message}`);
