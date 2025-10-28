@@ -63,6 +63,7 @@ const WebTab: React.FC<TabProps> = ({
   const [isStarting, setStarting] = useState(false);
 
   const connectedRef = useRef(connected);
+  const startingRef = useRef(false);
 
   const MAX_RECONNECT_ATTEMPTS = 3;
   const MAX_KEY_VALUE_PAIRS = 10;
@@ -383,10 +384,11 @@ const WebTab: React.FC<TabProps> = ({
     try {
       console.log("🚀 Starting web analysis...");
 
-      if (isStarting) {
-        return
+      if (startingRef.current || isStarting) {
+        return;
       }
 
+      startingRef.current = true;
       setStarting(true)
 
       // Check if the API key is a free trial
@@ -560,6 +562,7 @@ const WebTab: React.FC<TabProps> = ({
     } finally {
       setIsLoading(false);
       setStarting(false);
+      startingRef.current = false; // Reset the reference
     }
   };
 
