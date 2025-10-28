@@ -217,6 +217,7 @@ const WebTab: React.FC<TabProps> = ({
   const stopAnalysis = useCallback(async () => {
     try {
       setStopping(true);
+      setStarting(false);
       setConnectionStatus("disconnected");
       try {
         await axios.get(`${baseUrl}/stop/${sessionId}`, {
@@ -529,6 +530,7 @@ const WebTab: React.FC<TabProps> = ({
       setConnectionStatus("connected");
 
     } catch (error) {
+      setStarting(false)
       const errorMessage = getErrorMessage(error);
       console.error("❌ Error starting session:", errorMessage);
 
