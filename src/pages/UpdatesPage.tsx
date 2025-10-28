@@ -17,7 +17,7 @@ const BASE_URL = import.meta.env.VITE_API_URL;
 // Main Updates Page Component with Tabs
 const UpdatesPage: React.FC = () => {
   const [connected, setConnected] = useState(false);
-  const [done, setDone] = useState(false);
+  const [done, setDone] = useState(true);
   const [updates, setUpdates] = useState<PageDetails[]>([]);
   const [logs, setLogs] = useState<string[]>([]);
   const [donePageModalOpen, setDonePageModalOpen] = useState(false);
