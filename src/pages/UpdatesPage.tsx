@@ -118,6 +118,10 @@ const UpdatesPage: React.FC = () => {
               handleNewCrawlMapUpdate(message.data);
               handleMultipleNewLogs(message.data);
               break;
+            case 'DISCONNECTION':
+              console.log('Agent Disconnected.');
+              disconnect();
+              break;
             case 'LOG':
               handleNewLog(message.data);
               break;
