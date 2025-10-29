@@ -110,7 +110,7 @@ const UpdatesPage: React.FC = () => {
             case 'DONE':
               console.log('Agent is Done! Leave a feedback of how he did!');
               setDone(true);
-              console.log('Statistics:', message.data.statistics);
+              console.log('Statistics:', message.data);
               setDonePageStats(message.data.statistics);
               setDonePageModalOpen(true);
               break;
@@ -207,7 +207,7 @@ const UpdatesPage: React.FC = () => {
           isDone={done}
         />
 
-        {donePageModalOpen && donePageStats !== null && (
+        {donePageModalOpen && donePageStats !== null && donePageStats != undefined && (
           <DoneModal
             stats={donePageStats}
             onClose={() => setDonePageModalOpen(false)}
