@@ -106,7 +106,7 @@ const UpdatesPage: React.FC = () => {
               break;
             case 'DONE':
               console.log('Agent is Done! Leave a feedback of how he did!');
-              console.log(message);
+              console.log(message.data);
               setDonePageStats(message.data.statistics);
               if(!message.data.statistics) {
                 alert('Agent is done but no statistics were provided.');
