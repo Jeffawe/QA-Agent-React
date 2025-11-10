@@ -17,7 +17,6 @@ const BASE_URL = import.meta.env.VITE_API_URL;
 // Main Updates Page Component with Tabs
 const UpdatesPage: React.FC = () => {
   const [connected, setConnected] = useState(false);
-  const [done, setDone] = useState(false);
   const [updates, setUpdates] = useState<PageDetails[]>([]);
   const [logs, setLogs] = useState<string[]>([]);
   const [donePageModalOpen, setDonePageModalOpen] = useState(false);
@@ -83,14 +82,12 @@ const UpdatesPage: React.FC = () => {
         setConnectedLoading(false);
         alert('WebSocket connection error. Please check if the port is valid.');
         console.error('WebSocket error:', error);
-        setDone(false);
       };
 
       ws.onclose = () => {
         console.log('WebSocket connection closed.');
         setConnected(false);
-        setConnectedLoading(false);
-        setDone(false);
+        setConnectedLoading(false); 
       };
 
       ws.onmessage = (event) => {
@@ -110,13 +107,13 @@ const UpdatesPage: React.FC = () => {
             case 'DONE':
               console.log('Agent is Done! Leave a feedback of how he did!');
               console.log(message);
-              setDone(true);
               setDonePageStats(message.data.statistics);
               if(!message.data.statistics) {
                 alert('Agent is done but no statistics were provided.');
                 break;
               }
               setDonePageModalOpen(true);
+              disconnect(false);
               break;
             case 'INITIAL_DATA':
               handleNewCrawlMapUpdate(message.data);
@@ -149,7 +146,7 @@ const UpdatesPage: React.FC = () => {
     }
   }, []);
 
-  const disconnect = () => {
+  const disconnect = (showError: boolean = true) => {
     try {
       setStopServerLoading(true);
       if (socketRef.current) {
@@ -158,7 +155,7 @@ const UpdatesPage: React.FC = () => {
       }
       setConnected(false);
     } catch (error) {
-      alert('Problem when stopping the Server. Please check if the port (for server and websocket) are valid.');
+      if(showError) alert('Problem when stopping the Server. Please check if the port (for server and websocket) are valid.');
       console.error('Error Stopping:', error);
     } finally {
       setStopServerLoading(false);
@@ -212,7 +209,6 @@ const UpdatesPage: React.FC = () => {
           updates={updates}
           connect={connect}
           disconnect={disconnect}
-          isDone={done}
         />
 
         {donePageModalOpen && donePageStats !== null && donePageStats != undefined && (
