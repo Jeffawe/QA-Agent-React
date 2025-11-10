@@ -80,7 +80,7 @@ const UpdatesPage: React.FC = () => {
       ws.onerror = (error) => {
         setConnected(false);
         setConnectedLoading(false);
-        alert('WebSocket connection error. Please check if the port is valid.');
+        if(!donePageStats) alert('WebSocket connection error. Please check if the port is valid.');
         console.error('WebSocket error:', error);
       };
 
@@ -144,6 +144,7 @@ const UpdatesPage: React.FC = () => {
       alert('WebSocket connection error. Please check if the port is valid.');
       console.error('WebSocket connection error:', error);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const disconnect = (showError: boolean = true) => {
