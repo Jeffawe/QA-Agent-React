@@ -360,6 +360,7 @@ const WebTab: React.FC<TabProps> = ({
       console.log("🔌 Establishing WebSocket connection...");
       setConnectionStatus("connecting");
       connect(websocketUrl);
+      setWebsocketUrl("");
 
       // Set up connection timeout
       const connectionTimeout = setTimeout(() => {
