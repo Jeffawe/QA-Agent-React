@@ -101,6 +101,38 @@ const configurationFields: ConfigField[] = [
         disabled: false,
         note: "Currently in beta; basic mode doesn't require an API key"
     },
+    {
+        key: "detailed",
+        label: "Detailed",
+        type: "boolean",
+        defaultValue: false,
+        description:
+            "Enable detailed mode to test all UI elements on a page.",
+        required: false,
+        disabled: false
+    },
+        {
+        key: "cross-platform",
+        label: "Cross-Platform",
+        type: "boolean",
+        defaultValue: false,
+        description:
+            "Enable cross-platform mode to test on multiple platforms (e.g. Desktop, Mobile and Tablet).",
+        required: false,
+        disabled: false
+    },
+    {
+        key: "optimize-images",
+        label: "Optimize Images",
+        type: "boolean",
+        defaultValue: false,
+        description:
+            "Enable image optimization mode to optimize images on a page. This can help improve performance and ensures more accurate results.",
+        required: false,
+        disabled: false,
+        note: "This takes up more time"
+    },
+
 ];
 
 type KVRow = { id: string; k: string; v: string; };

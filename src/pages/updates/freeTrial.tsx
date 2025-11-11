@@ -1,4 +1,5 @@
 const checkUsageLink = import.meta.env.VITE_SERVERLESS_FUNCTION;
+const usageLink = import.meta.env.VITE_USAGE_FUNCTION;
 
 interface UsageResponse {
   success: boolean;
@@ -11,6 +12,53 @@ interface UsageResponse {
   message?: string;
 }
 
+export async function addCrawlerConfig(
+  goal: string,
+  url: string,
+  testMode: boolean = false,
+  autoStart: boolean = true,
+  headless: boolean = true,
+  detailed: boolean = false,
+  endpoint: boolean = false,
+  optimizeImages: boolean = false,
+  crossPlatform: boolean = false
+) {
+  try {
+    const response = await fetch(
+      `${usageLink}/functions/v1/add-crawler-config`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SERVERLESS_TOKEN}`,
+        },
+        body: JSON.stringify({
+          goal,
+          url,
+          testMode,
+          autoStart,
+          headless,
+          detailed,
+          endpoint,
+          optimizeImages,
+          crossPlatform,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to add crawler config');
+    }
+
+    const result = await response.json();
+    return result.data[0];
+  }
+  catch (error) {
+    console.error('Error adding crawler config', error);
+  }
+}
+
 const generateFingerprint = async (): Promise<string> => {
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d');
@@ -20,7 +68,7 @@ const generateFingerprint = async (): Promise<string> => {
     ctx.fillText('fingerprint', 2, 2);
   }
   const canvasData = canvas.toDataURL();
-  
+
   const fingerprint = {
     userAgent: navigator.userAgent,
     language: navigator.language,
@@ -28,7 +76,7 @@ const generateFingerprint = async (): Promise<string> => {
     canvas: canvasData.slice(0, 50),
     screenResolution: `${window.screen.width}x${window.screen.height}`
   };
-  
+
   return btoa(JSON.stringify(fingerprint)).slice(0, 32);
 };
 
@@ -38,7 +86,7 @@ const usageTracker = async (
 ): Promise<UsageResponse> => {
   try {
     const browserFingerprint = await generateFingerprint();
-    
+
     const response = await fetch(
       checkUsageLink,
       {

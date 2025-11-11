@@ -2,7 +2,7 @@ import type { TabProps } from "../../types";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import axios from "axios";
 import PageAnalysisDisplay from "../PageAnalysisDisplay";
-import usageTracker from "./freeTrial";
+import usageTracker, { addCrawlerConfig } from "./freeTrial";
 
 const baseUrl = import.meta.env.VITE_API_URL;
 const testKey = import.meta.env.VITE_TEST_KEY;
@@ -52,7 +52,10 @@ const WebTab: React.FC<TabProps> = ({
   // New state variables
   const [detailed, setDetailed] = useState(false);
   const [endpointMode, setEndpointMode] = useState(false);
+  const [crossPlatform, setCrossPlatform] = useState(false);
+  const [optimizeImage, setOptimizeImage] = useState(false);
   const [additionalInfoExpanded, setAdditionalInfoExpanded] = useState(false);
+  const [moreInfoExpanded, setMoreInfoExpanded] = useState(false);
   const [keyValuePairs, setKeyValuePairs] = useState<KeyValuePair[]>([
     { key: "", value: "", id: crypto.randomUUID() },
   ]);
@@ -198,6 +201,8 @@ const WebTab: React.FC<TabProps> = ({
 
     // Add the detailed flag to the data object
     data.detailed = detailed;
+    data.optimizeImages = optimizeImage;
+    data.crossPlatform = crossPlatform;
 
     if (configFile && configFile.data) {
       Object.entries(configFile.data).forEach(([key, value]) => {
@@ -378,7 +383,7 @@ const WebTab: React.FC<TabProps> = ({
     connectedRef.current = connected;
     if (connected) {
       setConnectionStatus("connected");
-    }else{
+    } else {
       setConnectionStatus("disconnected");
       setIsAnalyzing(false);
     }
@@ -445,6 +450,7 @@ const WebTab: React.FC<TabProps> = ({
       }
 
       setSessionId(sessionId);
+      const testMode = apiKey.startsWith("TEST");
 
       // Setup API key with better error handling
       // Only setup API key is not in endpoint mode (or using advanced endpoint mode)
@@ -534,6 +540,7 @@ const WebTab: React.FC<TabProps> = ({
 
       // Update connection status
       setConnectionStatus("connected");
+      addCrawlerConfig(goal, websiteUrl, testMode, false, false, detailed, endpointMode, optimizeImage, crossPlatform);
 
     } catch (error) {
       setStarting(false)
@@ -776,20 +783,20 @@ const WebTab: React.FC<TabProps> = ({
               element per page.
               <span className="font-medium">
                 {" "}
-                Note: This will take significantly more time to complete.
+                Note: This will take more time to complete.
               </span>
             </p>
           </div>
 
-          {/* Endpoint Mode Switch */}
+          {/* Cross-Platform Switch */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <div className="flex items-center justify-between">
               <div className="flex-1">
                 <label className="flex items-center cursor-pointer">
                   <input
                     type="checkbox"
-                    checked={endpointMode}
-                    onChange={(e) => setEndpointMode(e.target.checked)}
+                    checked={crossPlatform}
+                    onChange={(e) => setCrossPlatform(e.target.checked)}
                     disabled={isAnalyzing || configFile !== null}
                     className="sr-only"
                   />
@@ -806,15 +813,127 @@ const WebTab: React.FC<TabProps> = ({
                     />
                   </div>
                   <span className="ml-3 text-sm font-medium text-gray-700">
-                    Endpoint Mode
+                    Cross Platform
                     {configFile && <span className="ml-2 text-xs text-blue-600">(from config)</span>}
                   </span>
                 </label>
               </div>
             </div>
             <p className="text-sm text-blue-700 mt-2">
-              Use Endpoint mode if you're testing API endpoints instead of a website (or a visual element).
+              Enable cross-platform analysis for agent to test on multiple platforms (Mobile, Desktop and Tablet).
             </p>
+          </div>
+
+          {/* More Information Section */}
+          <div className="border border-gray-200 rounded-lg">
+            <button
+              onClick={() => setMoreInfoExpanded(!moreInfoExpanded)}
+              disabled={isAnalyzing}
+              className={`w-full px-4 py-3 text-left flex items-center justify-between hover:bg-gray-50 transition-colors duration-200 rounded-lg ${isAnalyzing ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+            >
+              <div>
+                <h4 className="font-medium text-gray-800">
+                  More Options
+                </h4>
+                <p>
+                  Further control over the analysis process
+                </p>
+
+              </div>
+              <svg
+                className={`w-5 h-5 text-gray-500 transition-transform duration-200 ${additionalInfoExpanded ? "rotate-180" : ""
+                  }`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
+            </button>
+
+            {moreInfoExpanded && (
+              <div className="px-4 pb-4 border-t border-gray-100">
+                <div className="space-y-3 mt-4">
+                  {/* Endpoint Mode Switch */}
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <label className="flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={endpointMode}
+                            onChange={(e) => setEndpointMode(e.target.checked)}
+                            disabled={isAnalyzing || configFile !== null}
+                            className="sr-only"
+                          />
+                          <div
+                            className={`relative inline-flex items-center h-6 rounded-full w-11 transition-colors duration-200 ease-in-out ${endpointMode ? "bg-blue-600" : "bg-gray-300"
+                              } ${isAnalyzing || configFile !== null
+                                ? "opacity-50 cursor-not-allowed"
+                                : "cursor-pointer"
+                              }`}
+                          >
+                            <span
+                              className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform duration-200 ease-in-out ${endpointMode ? "translate-x-6" : "translate-x-1"
+                                }`}
+                            />
+                          </div>
+                          <span className="ml-3 text-sm font-medium text-gray-700">
+                            Endpoint Mode
+                            {configFile && <span className="ml-2 text-xs text-blue-600">(from config)</span>}
+                          </span>
+                        </label>
+                      </div>
+                    </div>
+                    <p className="text-sm text-blue-700 mt-2">
+                      Use Endpoint mode if you're testing API endpoints instead of a website (or a visual element).
+                    </p>
+                  </div>
+
+                  {/* Optimize Images Switch */}
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <label className="flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={optimizeImage}
+                            onChange={(e) => setOptimizeImage(e.target.checked)}
+                            disabled={isAnalyzing || configFile !== null}
+                            className="sr-only"
+                          />
+                          <div
+                            className={`relative inline-flex items-center h-6 rounded-full w-11 transition-colors duration-200 ease-in-out ${endpointMode ? "bg-blue-600" : "bg-gray-300"
+                              } ${isAnalyzing || configFile !== null
+                                ? "opacity-50 cursor-not-allowed"
+                                : "cursor-pointer"
+                              }`}
+                          >
+                            <span
+                              className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform duration-200 ease-in-out ${endpointMode ? "translate-x-6" : "translate-x-1"
+                                }`}
+                            />
+                          </div>
+                          <span className="ml-3 text-sm font-medium text-gray-700">
+                            Optimize Images
+                            {configFile && <span className="ml-2 text-xs text-blue-600">(from config)</span>}
+                          </span>
+                        </label>
+                      </div>
+                    </div>
+                    <p className="text-sm text-blue-700 mt-2">
+                      Optimize images on a page. It will lead to more accurate results but take more time.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Additional Information Section */}
