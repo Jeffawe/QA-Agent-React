@@ -16,6 +16,8 @@ interface KeyValuePair {
 interface ConfigFile {
   detailed?: boolean;
   endpoint?: boolean;
+  "optimize-images"?: boolean;
+  "cross-platform"?: boolean;
   goal: string;
   key: string;
   url: string;
@@ -172,15 +174,26 @@ const WebTab: React.FC<TabProps> = ({
     reader.onload = (e) => {
       try {
         const json = JSON.parse(e.target?.result as string);
-        setConfigFile(json);
+        const parsed: ConfigFile = json;
+        setConfigFile(parsed);
         setConfigFileName(file.name);
 
-        // Populate fields from config file
-        if (json.url) setWebsiteUrl(json.url);
-        if (json.goal) setGoal(json.goal);
-        if (json.key) setApiKey(json.key);
-        if (typeof json.endpoint === 'boolean') setEndpointMode(json.endpoint);
-        if (typeof json.detailed === 'boolean') setDetailed(json.detailed);
+        // Populate fields from config file (support both camelCase and hyphenated keys)
+        if (parsed.url) setWebsiteUrl(parsed.url);
+        if (parsed.goal) setGoal(parsed.goal);
+        if (parsed.key) setApiKey(parsed.key);
+        if (typeof parsed.endpoint === 'boolean') setEndpointMode(parsed.endpoint);
+        if (typeof parsed.detailed === 'boolean') setDetailed(parsed.detailed);
+
+        // optimizeImages can be provided as optimizeImages or optimize-images
+        if (typeof parsed['optimize-images'] === 'boolean') {
+          setOptimizeImage(parsed['optimize-images']);
+        }
+
+        // crossPlatform can be provided as crossPlatform or cross-platform
+        if (typeof parsed['cross-platform'] === 'boolean') {
+          setCrossPlatform(parsed['cross-platform']);
+        }
 
         alert("✅ Config file loaded successfully!");
       } catch (error) {
@@ -801,14 +814,14 @@ const WebTab: React.FC<TabProps> = ({
                     className="sr-only"
                   />
                   <div
-                    className={`relative inline-flex items-center h-6 rounded-full w-11 transition-colors duration-200 ease-in-out ${endpointMode ? "bg-blue-600" : "bg-gray-300"
+                    className={`relative inline-flex items-center h-6 rounded-full w-11 transition-colors duration-200 ease-in-out ${crossPlatform ? "bg-blue-600" : "bg-gray-300"
                       } ${isAnalyzing || configFile !== null
                         ? "opacity-50 cursor-not-allowed"
                         : "cursor-pointer"
                       }`}
                   >
                     <span
-                      className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform duration-200 ease-in-out ${endpointMode ? "translate-x-6" : "translate-x-1"
+                      className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform duration-200 ease-in-out ${crossPlatform ? "translate-x-6" : "translate-x-1"
                         }`}
                     />
                   </div>
@@ -909,14 +922,14 @@ const WebTab: React.FC<TabProps> = ({
                             className="sr-only"
                           />
                           <div
-                            className={`relative inline-flex items-center h-6 rounded-full w-11 transition-colors duration-200 ease-in-out ${endpointMode ? "bg-blue-600" : "bg-gray-300"
+                            className={`relative inline-flex items-center h-6 rounded-full w-11 transition-colors duration-200 ease-in-out ${optimizeImage ? "bg-blue-600" : "bg-gray-300"
                               } ${isAnalyzing || configFile !== null
                                 ? "opacity-50 cursor-not-allowed"
                                 : "cursor-pointer"
                               }`}
                           >
                             <span
-                              className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform duration-200 ease-in-out ${endpointMode ? "translate-x-6" : "translate-x-1"
+                              className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform duration-200 ease-in-out ${optimizeImage ? "translate-x-6" : "translate-x-1"
                                 }`}
                             />
                           </div>
