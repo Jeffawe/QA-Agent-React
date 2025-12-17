@@ -3,6 +3,7 @@ import WebTab from "./updates/WebTab";
 import type { PageDetails, Statistics } from "../types";
 import DoneModal from "./updates/web/DoneModal";
 import { useNavigate } from "react-router-dom";
+import useTracking from "../context/useTracking";
 
 interface WebSocketData { message?: string; timestamp: number; page?: PageDetails; }
 
@@ -28,6 +29,8 @@ const UpdatesPage: React.FC = () => {
   //Loading
   const [stopServerloading, setStopServerLoading] = useState(false);
   const [connectedLoading, setConnectedLoading] = useState(false);
+
+  const { stopTracking, stopTrackingOnFail } = useTracking();
 
 
   useEffect(() => {
@@ -63,7 +66,7 @@ const UpdatesPage: React.FC = () => {
     navigate('/docs/feedback');
   }
 
-  const connect = useCallback((socketLocalPort: string) => {
+  const connect = useCallback(async (socketLocalPort: string) => {
     try {
       console.log('Connecting to WebSocket...');
       setConnectedLoading(true);
@@ -77,20 +80,21 @@ const UpdatesPage: React.FC = () => {
         setConnectedLoading(false);
       };
 
-      ws.onerror = (error) => {
+      ws.onerror = async (error) => {
         setConnected(false);
         setConnectedLoading(false);
-        if(!donePageStats) alert('WebSocket connection error. Please check if the port is valid.');
+        await stopTrackingOnFail((error as Event).type || 'WebSocket error');
+        if (!donePageStats) alert('WebSocket connection error. Please check if the port is valid.');
         console.error('WebSocket error:', error);
       };
 
       ws.onclose = () => {
         console.log('WebSocket connection closed.');
         setConnected(false);
-        setConnectedLoading(false); 
+        setConnectedLoading(false);
       };
 
-      ws.onmessage = (event) => {
+      ws.onmessage = async (event) => {
         try {
           const message = JSON.parse(event.data);
 
@@ -98,42 +102,63 @@ const UpdatesPage: React.FC = () => {
             case 'CONNECTION_ACK':
               console.log(`🔗 Connection confirmed: ${message.data.message}`);
               break;
+
             case 'ISSUE':
               alert(`❗Issue detected: ${message.data.message}`);
               break;
+
             case 'STOP_WARNING':
               alert(`⚠️ ${message.data.message}`);
               break;
-            case 'DONE':
+
+            case 'DONE': {
               console.log('Agent is Done! Leave a feedback of how he did!');
-              console.log(message.data);
-              setDonePageStats(message.data.statistics);
-              if(!message.data.statistics) {
+              const stats = message.data.statistics;
+
+              if (!stats) {
                 alert('Agent is done but no statistics were provided.');
                 break;
               }
+
+              setDonePageStats(stats);
+
+              // Track completion with stats
+              await stopTracking({
+                pages_crawled: stats.totalPagesVisited,
+                tests_run: stats.totalEndpointsTested,
+                issues_found: stats.totalBugsFound
+              });
+
+              // Show modal after tracking
               setDonePageModalOpen(true);
               disconnect(false);
               break;
+            }
+
             case 'INITIAL_DATA':
               handleNewCrawlMapUpdate(message.data);
               handleMultipleNewLogs(message.data);
               break;
+
             case 'DISCONNECTION':
               console.log('Agent Disconnected.');
               disconnect();
               break;
+
             case 'LOG':
               handleNewLog(message.data);
               break;
+
             case 'CRAWL_MAP_UPDATE':
               handleCrawlMapUpdate(message.data);
               break;
+
             default:
               console.log('Unknown event type:', message.type);
           }
         } catch (error) {
           console.error('Error parsing WebSocket message:', error);
+          await stopTrackingOnFail((error as Event).type || 'WebSocket error');
         }
       };
 
@@ -144,7 +169,7 @@ const UpdatesPage: React.FC = () => {
       alert('WebSocket connection error. Please check if the port is valid.');
       console.error('WebSocket connection error:', error);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const disconnect = (showError: boolean = true) => {
@@ -156,7 +181,7 @@ const UpdatesPage: React.FC = () => {
       }
       setConnected(false);
     } catch (error) {
-      if(showError) alert('Problem when stopping the Server. Please check if the port (for server and websocket) are valid.');
+      if (showError) alert('Problem when stopping the Server. Please check if the port (for server and websocket) are valid.');
       console.error('Error Stopping:', error);
     } finally {
       setStopServerLoading(false);

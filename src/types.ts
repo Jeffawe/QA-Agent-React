@@ -225,3 +225,29 @@ export interface RedisMessage {
     data: WebSocketData | ConnectionData | FirstConnectionData | DisconnectionData;
     timestamp: string;
 }
+
+export interface StartTrackingParams {
+  website_url: string;
+  session_id: string;
+  goal?: string;
+  detailed?: boolean;
+  endpoint_mode?: boolean;
+  cross_platform?: boolean;
+  optimize_images?: boolean;
+  usage_type: "free_trial" | "test_key" | "production";
+}
+
+export interface StopTrackingParams {
+  pages_crawled?: number;
+  tests_run?: number;
+  issues_found?: number;
+}
+
+export interface TrackingContextValue {
+  startTracking: (params: StartTrackingParams) => Promise<void>;
+  stopTracking: (params?: StopTrackingParams) => Promise<void>;
+  stopTrackingOnFail: (error: string) => Promise<void>;
+  isTracking: boolean;
+  sessionId: string | null;
+  startTime: number | null;
+}

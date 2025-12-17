@@ -8,10 +8,10 @@ interface DoneModalProps {
   onFeedbackClick: () => void;
 }
 
-const DoneModal: React.FC<DoneModalProps> = ({ 
-  stats, 
+const DoneModal: React.FC<DoneModalProps> = ({
+  stats,
   onClose,
-  onFeedbackClick 
+  onFeedbackClick
 }) => {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -39,17 +39,17 @@ const DoneModal: React.FC<DoneModalProps> = ({
               <span className="text-gray-700 font-medium">Pages Visited</span>
               <span className="text-blue-600 font-bold text-lg">{stats.totalPagesVisited}</span>
             </div>
-            
+
             <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
               <span className="text-gray-700 font-medium">Links Clicked</span>
               <span className="text-green-600 font-bold text-lg">{stats.totalLinksClicked}</span>
             </div>
-            
+
             <div className="flex justify-between items-center p-3 bg-red-50 rounded-lg">
               <span className="text-gray-700 font-medium">Bugs Found</span>
               <span className="text-red-600 font-bold text-lg">{stats.totalBugsFound}</span>
             </div>
-            
+
             <div className="flex justify-between items-center p-3 bg-purple-50 rounded-lg">
               <span className="text-gray-700 font-medium">Token Usage</span>
               <span className="text-purple-600 font-bold text-lg">{stats.totalTokenUsage.toLocaleString()}</span>
@@ -63,7 +63,7 @@ const DoneModal: React.FC<DoneModalProps> = ({
               <span className="font-mono text-blue-600">/docs/feedback</span>{' '}
               to leave feedback on how the agent did.
             </p>
-            
+
             <button
               onClick={onFeedbackClick}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-4 rounded-lg transition-colors"

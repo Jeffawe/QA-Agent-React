@@ -1,11 +1,12 @@
 import type { ConfigFile, TabProps } from "../../types";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import axios from "axios";
-import { trackUsage, encryptApiKey, getErrorMessage, trackQACall } from "./functions";
+import { trackUsage, encryptApiKey, getErrorMessage } from "./functions";
 import { ConnectionStatus } from "./web/usableComponents";
 import AnalysisForm from "./web/AnalysisForm";
 import ExplanationSection from "./web/explanationSection";
 import PageAnalysisDisplay from "../PageAnalysisDisplay";
+import useTracking from "../../context/useTracking"
 
 const baseUrl = import.meta.env.VITE_API_URL;
 const testKey = import.meta.env.VITE_TEST_KEY;
@@ -46,6 +47,8 @@ const WebTab: React.FC<TabProps> = ({
     { key: "", value: "", id: crypto.randomUUID() },
   ]);
   const [isStarting, setStarting] = useState(false);
+
+  const { startTracking, stopTrackingOnFail } = useTracking();
 
   const connectedRef = useRef(connected);
   const startingRef = useRef(false);
@@ -120,6 +123,7 @@ const WebTab: React.FC<TabProps> = ({
       }
       disconnect();
       setIsAnalyzing(false);
+      await stopTrackingOnFail("Stopped by user");
       setReconnectAttempts(0);
       setIsReconnecting(false);
       setSessionId("");
@@ -128,7 +132,7 @@ const WebTab: React.FC<TabProps> = ({
     } finally {
       setStopping(false);
     }
-  }, [disconnect, sessionId]);
+  }, [disconnect, sessionId, stopTrackingOnFail]);
 
   const checkSessionStatus = useCallback(
     async (sessionId: string): Promise<boolean> => {
@@ -427,7 +431,6 @@ const WebTab: React.FC<TabProps> = ({
         throw new Error("No session ID returned from server");
       }
 
-      console.log("✅ Analysis started, session ID:", freshSessionId);
       setSessionId(freshSessionId);
 
       // Setup WebSocket URL
@@ -438,7 +441,12 @@ const WebTab: React.FC<TabProps> = ({
 
       // Update connection status
       setConnectionStatus("connected");
-      trackStart(usage_type);
+      await startTracking({
+        website_url: websiteUrl,
+        goal: goal,
+        usage_type: usage_type,
+        session_id: freshSessionId
+      })
 
     } catch (error) {
       setStarting(false)
@@ -451,6 +459,7 @@ const WebTab: React.FC<TabProps> = ({
           `⏱️ Connection timed out. This might be due to high server load or slow browser startup. The session may still be initializing in the background so try reconnecting.`
         );
         setConnectionStatus("error");
+        await stopTrackingOnFail(errorMessage);
       } else if (errorMessage.includes("Network Error") || errorMessage.includes("ECONNREFUSED")) {
         alert(`🌐 Network connection error. Please check your internet connection and server availability.`);
         setConnectionStatus("error");
@@ -462,7 +471,7 @@ const WebTab: React.FC<TabProps> = ({
       } else if (errorMessage.includes("429")) {
         alert(`⏳ Rate limit exceeded. Please wait a moment and try again.`);
         setConnectionStatus("error");
-
+        await stopTrackingOnFail(errorMessage);
       } else {
         alert(`❌ Error starting session: ${errorMessage}`);
         setConnectionStatus("error");
@@ -485,22 +494,6 @@ const WebTab: React.FC<TabProps> = ({
       throw error;
     }
   };
-
-  const trackStart = async (usage_type: "free_trial" | "test_key" | "production") => {
-    const trackResult = await trackQACall({
-      website_url: websiteUrl,
-      session_id: sessionId,
-      goal: goal,
-      detailed: detailed,
-      cross_platform: crossPlatform,
-      optimize_images: optimizeImage,
-      usage_type: usage_type
-    });
-
-    if (!trackResult.success) {
-      console.error("Failed to track QA call:", trackResult.message);
-    }
-  }
 
 
   return (
