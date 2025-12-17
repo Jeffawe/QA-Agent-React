@@ -196,6 +196,20 @@ export interface DisconnectionData {
     message: string;
 }
 
+export interface ConfigFile {
+  detailed?: boolean;
+  endpoint?: boolean;
+  "optimize-images"?: boolean;
+  "cross-platform"?: boolean;
+  goal: string;
+  key: string;
+  url: string;
+  port?: number;
+  data?: {
+    [key: string]: unknown;
+  };
+}
+
 export interface Statistics {
     totalPagesVisited: number;
     totalLinksClicked: number;

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import WebTab from "./updates/WebTab";
 import type { PageDetails, Statistics } from "../types";
-import DoneModal from "./updates/DoneModal";
+import DoneModal from "./updates/web/DoneModal";
 import { useNavigate } from "react-router-dom";
 
 interface WebSocketData { message?: string; timestamp: number; page?: PageDetails; }
