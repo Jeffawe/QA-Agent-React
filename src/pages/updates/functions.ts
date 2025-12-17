@@ -265,7 +265,6 @@ interface TrackQACallParams {
 
   // Usage type
   usage_type?: "free_trial" | "test_key" | "production";
-  api_key_hash?: string;
 
   // Additional custom data
   additional_data?: Record<string, string>;
@@ -308,7 +307,6 @@ export async function trackQACall(
       cross_platform,
       optimize_images,
       usage_type,
-      api_key_hash,
       additional_data,
     } = params;
 
@@ -336,7 +334,7 @@ export async function trackQACall(
       cross_platform: cross_platform || false,
       optimize_images: optimize_images || false,
       usage_type: usage_type || "production",
-      api_key_hash: api_key_hash || undefined,
+      api_key_hash: undefined,
       additional_data: additional_data || undefined,
       status: "started",
     };
