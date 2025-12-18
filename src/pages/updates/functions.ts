@@ -244,11 +244,6 @@ export const getErrorMessage = (error: unknown): string => {
   return String(error);
 };
 
-
-// ============================================
-// TYPESCRIPT CLIENT: QA Agent Call Tracker
-// ============================================
-
 interface TrackQACallParams {
   // Required
   website_url: string;

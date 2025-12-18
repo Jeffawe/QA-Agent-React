@@ -9,7 +9,7 @@ import PageAnalysisDisplay from "../PageAnalysisDisplay";
 import useTracking from "../../context/useTracking"
 
 const baseUrl = import.meta.env.VITE_API_URL;
-const testKey = import.meta.env.VITE_TEST_KEY;
+const testKey = import.meta.env.VITE_UNIQUE_KEY;
 
 interface KeyValuePair {
   key: string;
@@ -23,7 +23,8 @@ const WebTab: React.FC<TabProps> = ({
   disconnect,
   updates,
   connected,
-  socketRef
+  socketRef,
+  restartServer,
 }) => {
   const [websiteUrl, setWebsiteUrl] = useState("");
   const [websocketUrl, setWebsocketUrl] = useState("");
@@ -282,6 +283,7 @@ const WebTab: React.FC<TabProps> = ({
   const startWebAnalysis = async () => {
     try {
       console.log("🚀 Starting web analysis...");
+      restartServer();
       let local_api_key = apiKey
 
       if (startingRef.current || isStarting) {
@@ -305,7 +307,7 @@ const WebTab: React.FC<TabProps> = ({
           alert(isFree.error ? `Something went wrong` : "You have reached your free trial limit. Please use your own API key or become a tester.");
           return
         } else {
-          local_api_key = testKey
+          local_api_key = `f_${testKey}`
         }
       }
 
@@ -322,7 +324,7 @@ const WebTab: React.FC<TabProps> = ({
           alert(isTest.error ? `Something went wrong` : "You're not a test user.");
           return
         } else {
-          local_api_key = testKey
+          local_api_key = `t_${testKey}`
         }
       }
 
@@ -394,9 +396,6 @@ const WebTab: React.FC<TabProps> = ({
         }
       }
 
-      // Determine endpoint
-      const endPoint = `start/${sessionId}`;
-
       // Clear the API key from memory immediately after setup
       setApiKey("");
       local_api_key = "";
@@ -410,7 +409,7 @@ const WebTab: React.FC<TabProps> = ({
 
       // Start analysis with proper timeout and error handling
       const response = await axios.post(
-        `${baseUrl}/${endPoint}`,
+        `${baseUrl}/start/${sessionId}`,
         requestPayload,
         {
           headers: {

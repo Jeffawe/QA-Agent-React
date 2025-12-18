@@ -172,6 +172,10 @@ const UpdatesPage: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const restartServer = () => {
+    // TODO: restart server
+  }
+
   const disconnect = (showError: boolean = true) => {
     try {
       setStopServerLoading(true);
@@ -235,6 +239,7 @@ const UpdatesPage: React.FC = () => {
           updates={updates}
           connect={connect}
           disconnect={disconnect}
+          restartServer={restartServer}
         />
 
         {donePageModalOpen && donePageStats !== null && donePageStats != undefined && (
